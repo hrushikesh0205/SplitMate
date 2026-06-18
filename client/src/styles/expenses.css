@@ -1,0 +1,249 @@
+/* Category Badge */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.category-food          { background: rgba(255, 101, 132, 0.12); color: #ff6584; }
+.category-travel        { background: rgba(66, 186, 150, 0.12);  color: #42ba96; }
+.category-rent          { background: rgba(108, 99, 255, 0.12);  color: #6c63ff; }
+.category-shopping      { background: rgba(244, 162, 97, 0.12);  color: #f4a261; }
+.category-entertainment { background: rgba(168, 85, 247, 0.12);  color: #a855f7; }
+.category-other         { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
+
+/* Expense Card */
+.expense-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  gap: 12px;
+}
+
+.expense-card:hover {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.02);
+}
+
+.expense-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.expense-category-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.expense-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.expense-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.expense-card-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.expense-card-paidby {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.expense-card-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.expense-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.expense-total-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.expense-my-share {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.share-positive { color: var(--success); }
+.share-negative { color: var(--danger); }
+
+.expense-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.expense-delete-btn:hover {
+  background: rgba(223, 71, 89, 0.1);
+  color: var(--danger);
+}
+
+.expenses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Expense Modal */
+.expense-modal {
+  max-height: 90vh;
+  overflow-y: auto;
+  max-width: 540px;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Category Selector */
+.category-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-btn {
+  padding: 8px 14px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.category-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.category-btn-active {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.1);
+  color: var(--primary);
+}
+
+/* Form Select */
+.form-select {
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  border-color: var(--primary);
+}
+
+/* Split Type */
+.split-type-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.split-type-btn {
+  padding: 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.split-type-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.split-type-active {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.1);
+  color: var(--primary);
+}
+
+/* Custom Splits */
+.custom-splits {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-split-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-split-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.custom-split-row input {
+  width: 120px;
+  padding: 8px 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  outline: none;
+}
+
+.custom-split-row input:focus {
+  border-color: var(--primary);
+}
