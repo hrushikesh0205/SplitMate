@@ -64,6 +64,43 @@ Whether it's a college trip, shared apartment expenses, office events, or group 
 - Vercel
 - Render
 
+
+## 📁 Project Structure
+
+```text
+SplitMate
+│
+├── client
+│   ├── public
+│   ├── src
+│   │   ├── components
+│   │   ├── context
+│   │   ├── hooks
+│   │   ├── pages
+│   │   ├── styles
+│   │   ├── utils
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── package.json
+│   └── vite.config.js
+│
+├── server
+│   ├── config
+│   ├── controllers
+│   ├── middleware
+│   ├── models
+│   ├── routes
+│   ├── socket
+│   ├── utils
+│   ├── server.js
+│   └── package.json
+│
+├── .gitignore
+└── README.md
+```
+
+
   ## ⚡ Backend Setup
 
 ```bash
