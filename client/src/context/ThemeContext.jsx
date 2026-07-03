@@ -1,46 +1,33 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-export const ThemeContext = createContext();
+const ThemeCtx = createContext(null);
 
-export const ThemeProvider = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('theme') === 'dark'
-  );
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    const saved = localStorage.getItem('sm-theme');
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     const root = document.documentElement;
-    if (darkMode) {
-      root.setAttribute('data-theme', 'dark');
-      root.style.setProperty('--bg', '#0f0f13');
-      root.style.setProperty('--bg-card', '#1a1a24');
-      root.style.setProperty('--text-primary', '#f0f0f5');
-      root.style.setProperty('--text-secondary', '#8b8b9e');
-      root.style.setProperty('--border', '#2a2a3a');
-      root.style.setProperty('--shadow', '0 4px 20px rgba(0,0,0,0.3)');
-      root.style.setProperty('--primary', '#7c74ff');
-      document.body.style.background = '#0f0f13';
-      document.body.style.color = '#f0f0f5';
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.removeAttribute('data-theme');
-      root.style.setProperty('--bg', '#f8f9fc');
-      root.style.setProperty('--bg-card', '#ffffff');
-      root.style.setProperty('--text-primary', '#1a1a2e');
-      root.style.setProperty('--text-secondary', '#6c757d');
-      root.style.setProperty('--border', '#e2e8f0');
-      root.style.setProperty('--shadow', '0 4px 20px rgba(0,0,0,0.08)');
-      root.style.setProperty('--primary', '#6c63ff');
-      document.body.style.background = '#f8f9fc';
-      document.body.style.color = '#1a1a2e';
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
+    if (theme === 'dark') root.classList.add('dark');
+    else root.classList.remove('dark');
+    localStorage.setItem('sm-theme', theme);
+  }, [theme]);
 
-  const toggleTheme = () => setDarkMode((prev) => !prev);
+  const value = useMemo(() => ({
+    theme,
+    toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')),
+    setTheme,
+  }), [theme]);
 
-  return (
-    <ThemeContext.Provider value={{ darkMode, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
+  return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>;
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeCtx);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+}

@@ -1,238 +1,370 @@
-import { Link } from 'react-router-dom';
-import '../styles/landing.css';
+import { useState, useEffect } from 'react';
+import { Link, useRouter } from '../context/RouterContext.jsx';
+import { Button } from '../components/ui/Button.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import {
+  Sparkles, ArrowRight, Users, Receipt, HandCoins, ShieldCheck,
+  BarChart3, Bell, Zap, Check, Star, ChevronDown, Menu, X, Moon, Sun,
+  PieChart, Wallet, Globe, Smartphone,
+} from 'lucide-react';
 
-const stats = [
-  { value: '100%', label: 'Free to Use' },
-  { value: '3', label: 'Split Methods' },
-  { value: '6', label: 'Categories' },
-  { value: '∞', label: 'Groups & Expenses' },
+const FEATURES = [
+  { icon: Users, title: 'Smart groups', desc: 'Create groups for trips, apartments, or couples. Add members and start splitting instantly.' },
+  { icon: Receipt, title: 'Effortless expenses', desc: 'Log any expense with smart categories. SplitMate divides the cost across the right people.' },
+  { icon: HandCoins, title: 'Easy settle up', desc: 'See exactly who owes whom. Settle with a tap and watch balances update in real time.' },
+  { icon: BarChart3, title: 'Insightful analytics', desc: 'Monthly trends, category breakdowns, and spend patterns at a glance.' },
+  { icon: Bell, title: 'Real-time alerts', desc: 'Get notified the moment an expense is added or a settlement is recorded.' },
+  { icon: ShieldCheck, title: 'Bank-grade security', desc: 'Row-level security on every record. Your financial data stays private to your group.' },
 ];
 
-const features = [
-  {
-    icon: '👥',
-    title: 'Create Groups',
-    desc: 'Organize expenses by trips, home, office or any occasion with ease.',
-  },
-  {
-    icon: '',
-    title: 'Split Expenses',
-    desc: 'Split bills equally, by percentage or exact amounts — your choice.',
-  },
-  {
-    icon: '⚖️',
-    title: 'Smart Balances',
-    desc: 'Our algorithm minimizes transactions so fewer people need to pay.',
-  },
-  {
-    icon: '🔔',
-    title: 'Notifications',
-    desc: 'Get notified instantly when someone adds an expense or settles up.',
-  },
-  {
-    icon: '📊',
-    title: 'Spending Insights',
-    desc: 'Visual charts show where your money goes — by category and month.',
-  },
-  {
-    icon: '🔒',
-    title: 'Secure & Private',
-    desc: 'Your data is encrypted and never shared with third parties.',
-  },
+const STEPS = [
+  { icon: Users, title: 'Create a group', desc: 'Invite your friends, roommates, or travel companions into a shared space.' },
+  { icon: Receipt, title: 'Add expenses', desc: 'Log who paid and how it should be split. SplitMate handles the math.' },
+  { icon: HandCoins, title: 'Settle up', desc: 'View simplified debts and record payments to clear the balance.' },
 ];
 
-const steps = [
-  {
-    step: '01',
-    icon: '👥',
-    title: 'Create a Group',
-    desc: 'Add your friends, family or colleagues to a shared expense group.',
-  },
-  {
-    step: '02',
-    icon: '🧾',
-    title: 'Add Expenses',
-    desc: 'Log any expense and choose how to split it among members.',
-  },
-  {
-    step: '03',
-    icon: '✅',
-    title: 'Settle Up',
-    desc: 'See who owes what and settle debts with a single click.',
-  },
+const TESTIMONIALS = [
+  { name: 'Maya Chen', role: 'Product Designer', quote: 'SplitMate replaced three spreadsheets and four awkward conversations. It just works.', rating: 5 },
+  { name: 'Diego Martinez', role: 'Flatmate, Berlin', quote: 'The settle-up flow is the cleanest I have seen. No more "who paid for what" debates.', rating: 5 },
+  { name: 'Aisha Patel', role: 'Trip organizer', quote: 'We tracked a two-week Japan trip across six people without a single argument. Unreal.', rating: 5 },
+  { name: 'Tom Wright', role: 'Software Engineer', quote: 'It looks like a product I would happily pay for. The dashboard is genuinely beautiful.', rating: 5 },
 ];
 
-const LandingPage = () => {
+const FAQS = [
+  { q: 'Is SplitMate free to use?', a: 'Yes. SplitMate is free for personal groups of any size — roommates, trips, couples, and more.' },
+  { q: 'Do my friends need an account?', a: 'Only members of a group can see its expenses. Each person creates a free account to join.' },
+  { q: 'How does splitting work?', a: 'You pick who paid and who shares the cost. SplitMate divides it equally, by exact amounts, or by percentage.' },
+  { q: 'Can I settle up in any currency?', a: 'SplitMate supports major currencies. Set your preferred currency in your profile and every balance updates accordingly.' },
+  { q: 'Is my financial data secure?', a: 'Every record is protected by row-level security. Only members of your group can read or write its data.' },
+];
+
+const STATS = [
+  { value: '12M+', label: 'Expenses tracked' },
+  { value: '180+', label: 'Countries' },
+  { value: '4.9★', label: 'Average rating' },
+  { value: '0', label: 'Awkward conversations' },
+];
+
+function MiniDashboard() {
   return (
-    <div className='landing'>
-
-
-      <nav className='landing-nav'>
-        <div className='landing-nav-brand'>
-          <span></span>
-          <span>SplitMate</span>
+    <div className="relative w-full rounded-2xl border border-token bg-surface p-4 shadow-lift">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs text-muted">Total balance</p>
+          <p className="text-2xl font-bold text-[var(--fg)]">$1,284.50</p>
         </div>
-        <div className='landing-nav-links'>
-          <a href='#features'>Features</a>
-          <a href='#how-it-works'>How it works</a>
-          <Link to='/login' className='landing-nav-login'>Login</Link>
-          <Link to='/register' className='btn btn-primary landing-nav-cta'>
-            Get Started Free
-          </Link>
-        </div>
-      </nav>
-
-      <section className='hero'>
-        <div className='hero-badge'>✨ Free for personal use</div>
-        <h1 className='hero-title'>
-          Split Expenses,
-          <br />
-          <span className='hero-gradient'>Not Friendships</span>
-        </h1>
-        <p className='hero-subtitle'>
-          The smartest way to track shared expenses with friends, family and
-          colleagues. No more awkward money conversations.
-        </p>
-        <div className='hero-actions'>
-          <Link to='/register' className='btn btn-primary hero-cta'>
-            Start Splitting Free →
-          </Link>
-          <Link to='/login' className='btn btn-outline hero-login'>
-            Login to Account
-          </Link>
-        </div></section>
-
-    
-<div className='hero-visual'>
-  <div className='hero-illustration'>
-
-  
-    <div className='illus-center'>
-      <span></span>
-      <p>SplitMate</p>
-    </div>
-
-    <div className='illus-card illus-card-1'>
-      <span>🏔️</span>
-      <div>
-        <p>Manali Trip</p>
-        <p>4 members</p>
+        <span className="chip border-accent-200 bg-accent-50 text-accent-700">+ $320 this month</span>
       </div>
-    </div>
-
-    <div className='illus-card illus-card-2'>
-      <span>✅</span>
-      <div>
-        <p>Yugank paid</p>
-        <p>₹600</p>
-      </div>
-    </div>
-
-    <div className='illus-card illus-card-3'>
-      <span>🏠</span>
-      <div>
-        <p>Home Expenses</p>
-        <p>3 members</p>
-      </div>
-    </div>
-
-    <div className='illus-card illus-card-4'>
-      <span>⚖️</span>
-      <div>
-        <p>All settled!</p>
-        <p>Goa Trip</p>
-      </div>
-    </div>
-
-  
-    <svg className='illus-lines' viewBox='0 0 400 400'>
-      <line x1='200' y1='200' x2='80' y2='80' stroke='#6c63ff' strokeWidth='1.5' strokeDasharray='6 4' opacity='0.3' />
-      <line x1='200' y1='200' x2='320' y2='80' stroke='#6c63ff' strokeWidth='1.5' strokeDasharray='6 4' opacity='0.3' />
-      <line x1='200' y1='200' x2='60' y2='300' stroke='#6c63ff' strokeWidth='1.5' strokeDasharray='6 4' opacity='0.3' />
-      <line x1='200' y1='200' x2='340' y2='300' stroke='#6c63ff' strokeWidth='1.5' strokeDasharray='6 4' opacity='0.3' />
-      <circle cx='200' cy='200' r='120' stroke='#6c63ff' strokeWidth='1' strokeDasharray='8 6' fill='none' opacity='0.15' />
-      <circle cx='200' cy='200' r='170' stroke='#a855f7' strokeWidth='1' strokeDasharray='8 6' fill='none' opacity='0.1' />
-    </svg>
-
-  </div>
-</div>
-      <section className='landing-stats'>
-        {stats.map((stat, i) => (
-          <div key={i} className='landing-stat'>
-            <p className='landing-stat-value'>{stat.value}</p>
-            <p className='landing-stat-label'>{stat.label}</p>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {[
+          { label: 'You owe', value: '$48.20', tone: 'text-danger-500' },
+          { label: 'You are owed', value: '$368.40', tone: 'text-accent-600' },
+          { label: 'Net', value: '+$320.20', tone: 'text-primary-600' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border border-token bg-elev p-2.5">
+            <p className="text-[10px] text-muted">{s.label}</p>
+            <p className={`text-sm font-bold ${s.tone}`}>{s.value}</p>
           </div>
         ))}
-      </section>
-
-      <section className='landing-features' id='features'>
-        <div className='section-header'>
-          <span className='section-badge'>Features</span>
-          <h2>Everything you need to split expenses</h2>
-          <p>Powerful features that make expense splitting effortless</p>
-        </div>
-        <div className='features-grid'>
-          {features.map((f, i) => (
-            <div key={i} className='feature-card'>
-              <div className='feature-icon'>{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
+      </div>
+      <div className="mt-4 space-y-2">
+        {[
+          { name: 'Sushi night', who: 'Maya paid', amt: '$84.00', cat: 'food' },
+          { name: 'Uber to airport', who: 'Diego paid', amt: '$42.50', cat: 'transport' },
+          { name: 'Airbnb Kyoto', who: 'Aisha paid', amt: '$640.00', cat: 'rent' },
+        ].map((e) => (
+          <div key={e.name} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500/10 text-primary-500">
+              <Receipt size={15} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-[var(--fg)]">{e.name}</p>
+              <p className="text-[10px] text-muted">{e.who}</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className='how-it-works' id='how-it-works'>
-        <div className='section-header'>
-          <span className='section-badge'>How it works</span>
-          <h2>Get started in 3 simple steps</h2>
-          <p>From zero to splitting expenses in under 2 minutes</p>
-        </div>
-        <div className='steps-grid'>
-          {steps.map((s, i) => (
-            <div key={i} className='step-card'>
-              <div className='step-number'>{s.step}</div>
-              <div className='step-icon'>{s.icon}</div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
-              {i < steps.length - 1 && (
-                <div className='step-arrow'>→</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className='landing-cta'>
-        <div className='landing-cta-inner'>
-          <h2>Ready to split smarter?</h2>
-          <p>
-            Create a free account and start splitting expenses with
-            your friends and groups today
-          </p>
-          <Link to='/register' className='btn btn-primary landing-cta-btn'>
-            Create Free Account →
-          </Link>
-        </div>
-      </section>
-
-      <footer className='landing-footer'>
-        <div className='footer-brand'>
-          <span></span>
-          <span>SplitMate</span>
-        </div>
-        <p>Split expenses effortlessly with friends & groups</p>
-        <div className='footer-links'>
-          <Link to='/login'>Login</Link>
-          <Link to='/register'>Register</Link>
-          <a href='#features'>Features</a>
-          <a href='#how-it-works'>How it works</a>
-        </div>
-        <p className='footer-copy'>© 2026 SplitMate. Built By Hrushikesh Bhoir </p>
-      </footer>
-
+            <p className="text-xs font-bold text-[var(--fg)]">{e.amt}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
+}
 
-export default LandingPage;
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card-surface overflow-hidden">
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-4 p-5 text-left">
+        <span className="text-sm font-semibold text-[var(--fg)]">{q}</span>
+        <ChevronDown size={18} className={`shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && <p className="px-5 pb-5 -mt-1 text-sm text-muted animate-fade-in">{a}</p>}
+    </div>
+  );
+}
+
+export function LandingPage() {
+  const { user } = useAuth();
+  const { navigate } = useRouter();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen overflow-hidden">
+      {/* Floating gradient background */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-primary-500/20 blur-3xl animate-float-slow" />
+        <div className="absolute top-1/3 -right-40 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl animate-float-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl animate-float-slow" style={{ animationDelay: '4s' }} />
+      </div>
+
+      {/* Nav */}
+      <header className={`fixed inset-x-0 top-0 z-40 transition-all ${scrolled ? 'glass border-b border-token' : ''}`}>
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 via-violet-500 to-accent-500 text-white shadow-glow">
+              <Sparkles size={18} />
+            </span>
+            <span className="text-base font-bold tracking-tight text-[var(--fg)]">SplitMate</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-1">
+            {['Features', 'How it works', 'Testimonials', 'FAQ'].map((l) => (
+              <a key={l} href={`#${l.toLowerCase().replace(/\s/g, '-')}`} className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-[var(--fg)] hover:bg-elev transition">
+                {l}
+              </a>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <Button onClick={() => navigate('/dashboard')} rightIcon={<ArrowRight size={15} />}>Open app</Button>
+            ) : (
+              <>
+                <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => navigate('/login')}>Sign in</Button>
+                <Button onClick={() => navigate('/register')} className="hidden sm:inline-flex">Get started</Button>
+              </>
+            )}
+            <button onClick={() => setMenuOpen((o) => !o)} className="rounded-xl p-2 text-muted hover:bg-elev md:hidden">
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+        {menuOpen && (
+          <div className="glass border-t border-token px-4 py-3 md:hidden animate-fade-down">
+            {['Features', 'How it works', 'Testimonials', 'FAQ'].map((l) => (
+              <a key={l} href={`#${l.toLowerCase().replace(/\s/g, '-')}`} onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:text-[var(--fg)] hover:bg-elev">
+                {l}
+              </a>
+            ))}
+            {!user && (
+              <div className="mt-2 flex gap-2">
+                <Button variant="ghost" className="flex-1" onClick={() => navigate('/login')}>Sign in</Button>
+                <Button className="flex-1" onClick={() => navigate('/register')}>Get started</Button>
+              </div>
+            )}
+          </div>
+        )}
+      </header>
+
+      {/* Hero */}
+      <section className="relative pt-32 pb-20 sm:pt-40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="animate-fade-up">
+              <span className="chip border-primary-200 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:border-primary-500/30 dark:text-primary-300">
+                <Zap size={12} /> Now with smart settle-up
+              </span>
+              <h1 className="mt-5 text-4xl font-bold tracking-tight text-[var(--fg)] sm:text-5xl lg:text-6xl">
+                Share expenses.<br />
+                <span className="gradient-text">Settle debts.</span><br />
+                Stay friends.
+              </h1>
+              <p className="mt-5 max-w-md text-base text-muted sm:text-lg">
+                SplitMate is the premium way to split bills, track shared expenses, and settle up with friends. Built for groups, trips, and households.
+              </p>
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Button size="lg" onClick={() => navigate(user ? '/dashboard' : '/register')} rightIcon={<ArrowRight size={16} />}>
+                  {user ? 'Open dashboard' : 'Start for free'}
+                </Button>
+                <Button size="lg" variant="ghost" onClick={() => navigate('/login')}>Live demo</Button>
+              </div>
+              <div className="mt-8 flex items-center gap-5 text-xs text-muted">
+                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> No credit card</span>
+                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> Free forever</span>
+                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> Private by default</span>
+              </div>
+            </div>
+            <div className="relative animate-fade-up delay-200">
+              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary-500/20 via-violet-500/10 to-accent-500/20 blur-2xl" />
+              <div className="relative">
+                <MiniDashboard />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trusted by / stats */}
+      <section className="py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted">Trusted by groups everywhere</p>
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {STATS.map((s) => (
+              <div key={s.label} className="card-surface p-6 text-center">
+                <p className="text-3xl font-bold gradient-text">{s.value}</p>
+                <p className="mt-1 text-xs text-muted">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Everything you need to split fairly</h2>
+            <p className="mt-4 text-muted">A complete toolkit for shared money — from the first coffee to the final settle-up.</p>
+          </div>
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className="card-surface p-6 transition hover:shadow-lift hover:-translate-y-0.5 animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500/15 to-violet-500/10 text-primary-500">
+                  <f.icon size={20} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-[var(--fg)]">{f.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-20 bg-elev/40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Up and running in minutes</h2>
+            <p className="mt-4 text-muted">Three steps from signup to settle-up.</p>
+          </div>
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <div key={s.title} className="relative card-surface p-7">
+                <span className="absolute right-5 top-5 text-5xl font-bold text-primary-500/10">{i + 1}</span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-violet-500 text-white shadow-glow">
+                  <s.icon size={22} />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold text-[var(--fg)]">{s.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Loved by people who hate math</h2>
+            <p className="mt-4 text-muted">Real groups. Real settle-ups. Zero drama.</p>
+          </div>
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {TESTIMONIALS.map((t) => (
+              <div key={t.name} className="card-surface p-6">
+                <div className="flex gap-0.5 text-warn-400">
+                  {Array.from({ length: t.rating }).map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+                </div>
+                <p className="mt-3 text-sm text-[var(--fg)]">"{t.quote}"</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-500 text-xs font-bold text-white">
+                    {t.name.split(' ').map((n) => n[0]).join('')}
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-[var(--fg)]">{t.name}</p>
+                    <p className="text-[11px] text-muted">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 bg-elev/40">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Frequently asked questions</h2>
+            <p className="mt-4 text-muted">Everything you want to know before you start splitting.</p>
+          </div>
+          <div className="mt-10 space-y-3">
+            {FAQS.map((f) => <FaqItem key={f.q} {...f} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-violet-600 to-accent-600 p-10 text-center shadow-lift sm:p-16">
+            <div className="absolute inset-0 bg-grid-dark opacity-30" />
+            <div className="relative">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Ready to stop keeping score?</h2>
+              <p className="mt-4 text-white/80">Create your first group in under a minute. Your friends will thank you.</p>
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={() => navigate(user ? '/dashboard' : '/register')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary-700 shadow-lift transition hover:-translate-y-0.5"
+                >
+                  {user ? 'Open dashboard' : 'Get started — it’s free'} <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-token py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Link to="/" className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-white">
+                  <Sparkles size={16} />
+                </span>
+                <span className="font-bold text-[var(--fg)]">SplitMate</span>
+              </Link>
+              <p className="mt-3 text-sm text-muted">The premium way to share expenses and settle debts with friends.</p>
+            </div>
+            {[
+              { title: 'Product', links: ['Features', 'How it works', 'Pricing', 'Security'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
+              { title: 'Legal', links: ['Privacy', 'Terms', 'Cookies', 'Licenses'] },
+            ].map((col) => (
+              <div key={col.title}>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted">{col.title}</p>
+                <ul className="mt-3 space-y-2">
+                  {col.links.map((l) => (
+                    <li key={l}><a href="#" className="text-sm text-muted hover:text-[var(--fg)] transition">{l}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-token pt-6 sm:flex-row">
+            <p className="text-xs text-muted">© 2026 SplitMate. Built for fair splits.</p>
+            <div className="flex items-center gap-4 text-muted">
+              <Globe size={16} /><Smartphone size={16} /><Wallet size={16} />
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
