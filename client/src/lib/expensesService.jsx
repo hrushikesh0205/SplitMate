@@ -1,15 +1,17 @@
 /**
- * Expenses service — ready to wire to Express /api/expenses once those routes exist.
+ * Expenses service — connected to Express /api/expenses
  */
 import api from './axios.jsx';
 
 export async function fetchExpenses(groupId) {
-  const { data } = await api.get(`/expenses`, { params: { groupId } });
+  const { data } = await api.get('/expenses', {
+    params: { groupId },
+  });
   return data || [];
 }
 
 export async function fetchAllExpenses() {
-  const { data } = await api.get('/expenses');
+  const { data } = await api.get('/expenses/all');
   return data || [];
 }
 
