@@ -21,6 +21,8 @@ import {
   Users, Plus, Search, Trash2, UserMinus, Crown, Receipt,
   ArrowRight, LayoutGrid, List, X, Sparkles,
 } from 'lucide-react';
+import { GroupDetailsModal } from '../components/groups/GroupDetailsModal.jsx';
+
 
 const COVER_COLORS = [
   { key: 'indigo', cls: 'from-primary-500 to-violet-500' },
@@ -125,62 +127,62 @@ function CreateGroupModal({ open, onClose, onCreated }) {
   );
 }
 
-function GroupDetailModal({ group, members, net, currency, onClose, onRemoveMember, onDelete, isOwner }) {
-  if (!group) return null;
-  return (
-    <Modal open={!!group} onClose={onClose} title={group.name} subtitle={group.description || 'Group details'} size="lg">
-      <div className="space-y-5">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-xl border border-token bg-elev p-3">
-            <p className="text-[11px] text-muted">Your balance</p>
-            <p className={classNames('text-base font-bold', net > 0 ? 'text-accent-600' : net < 0 ? 'text-danger-500' : 'text-muted')}>
-              {formatMoney(net, currency)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-token bg-elev p-3">
-            <p className="text-[11px] text-muted">Members</p>
-            <p className="text-base font-bold text-[var(--fg)]">{members.length}</p>
-          </div>
-          <div className="rounded-xl border border-token bg-elev p-3">
-            <p className="text-[11px] text-muted">Created</p>
-            <p className="text-base font-bold text-[var(--fg)]">{formatDate(group.created_at, 'short')}</p>
-          </div>
-        </div>
+// function GroupDetailModal({ group, members, net, currency, onClose, onRemoveMember, onDelete, isOwner }) {
+//   if (!group) return null;
+//   return (
+//     <Modal open={!!group} onClose={onClose} title={group.name} subtitle={group.description || 'Group details'} size="lg">
+//       <div className="space-y-5">
+//         <div className="grid grid-cols-3 gap-3">
+//           <div className="rounded-xl border border-token bg-elev p-3">
+//             <p className="text-[11px] text-muted">Your balance</p>
+//             <p className={classNames('text-base font-bold', net > 0 ? 'text-accent-600' : net < 0 ? 'text-danger-500' : 'text-muted')}>
+//               {formatMoney(net, currency)}
+//             </p>
+//           </div>
+//           <div className="rounded-xl border border-token bg-elev p-3">
+//             <p className="text-[11px] text-muted">Members</p>
+//             <p className="text-base font-bold text-[var(--fg)]">{members.length}</p>
+//           </div>
+//           <div className="rounded-xl border border-token bg-elev p-3">
+//             <p className="text-[11px] text-muted">Created</p>
+//             <p className="text-base font-bold text-[var(--fg)]">{formatDate(group.created_at, 'short')}</p>
+//           </div>
+//         </div>
 
-        <div>
-          <h4 className="mb-2 text-xs font-semibold text-muted">Members</h4>
-          <ul className="space-y-2">
-            {members.map((m) => (
-              <li key={m.user_id} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-3">
-                <Avatar name={m.profile?.full_name || 'User'} src={m.profile?.avatar_url} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-[var(--fg)]">
-                    {m.profile?.full_name || 'Someone'}
-                    {m.user_id === group.created_by && <span className="ml-2 text-warn-500"><Crown size={12} className="inline" /></span>}
-                  </p>
-                  <p className="text-[11px] text-muted">{m.role}</p>
-                </div>
-                {isOwner && m.user_id !== group.created_by && (
-                  <IconButton onClick={() => onRemoveMember(group, m)} aria-label="Remove member"><UserMinus size={15} /></IconButton>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+//         <div>
+//           <h4 className="mb-2 text-xs font-semibold text-muted">Members</h4>
+//           <ul className="space-y-2">
+//             {members.map((m) => (
+//               <li key={m.user_id} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-3">
+//                 <Avatar name={m.profile?.full_name || 'User'} src={m.profile?.avatar_url} size="sm" />
+//                 <div className="min-w-0 flex-1">
+//                   <p className="truncate text-sm font-semibold text-[var(--fg)]">
+//                     {m.profile?.full_name || 'Someone'}
+//                     {m.user_id === group.created_by && <span className="ml-2 text-warn-500"><Crown size={12} className="inline" /></span>}
+//                   </p>
+//                   <p className="text-[11px] text-muted">{m.role}</p>
+//                 </div>
+//                 {isOwner && m.user_id !== group.created_by && (
+//                   <IconButton onClick={() => onRemoveMember(group, m)} aria-label="Remove member"><UserMinus size={15} /></IconButton>
+//                 )}
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
 
-        {isOwner && (
-          <div className="rounded-xl border border-danger-200 bg-danger-50/50 p-4 dark:border-danger-500/20 dark:bg-danger-500/5">
-            <p className="text-xs font-semibold text-danger-600">Danger zone</p>
-            <p className="mt-1 text-[11px] text-muted">Deleting a group removes all its expenses and settlements.</p>
-            <Button variant="ghost" size="sm" className="mt-3 !text-danger-600 !border-danger-200" onClick={() => onDelete(group)} leftIcon={<Trash2 size={14} />}>
-              Delete group
-            </Button>
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-}
+//         {isOwner && (
+//           <div className="rounded-xl border border-danger-200 bg-danger-50/50 p-4 dark:border-danger-500/20 dark:bg-danger-500/5">
+//             <p className="text-xs font-semibold text-danger-600">Danger zone</p>
+//             <p className="mt-1 text-[11px] text-muted">Deleting a group removes all its expenses and settlements.</p>
+//             <Button variant="ghost" size="sm" className="mt-3 !text-danger-600 !border-danger-200" onClick={() => onDelete(group)} leftIcon={<Trash2 size={14} />}>
+//               Delete group
+//             </Button>
+//           </div>
+//         )}
+//       </div>
+//     </Modal>
+//   );
+// }
 
 export function GroupsPage() {
   const { user, profile } = useAuth();
@@ -319,16 +321,19 @@ export function GroupsPage() {
 
       <CreateGroupModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={load} />
       <CreateExpenseModal open={showExpense} onClose={() => setShowExpense(false)} onCreated={load} />
-      <GroupDetailModal
-        group={activeGroup}
-        members={activeGroup ? (memberMap[activeGroup.id] || []) : []}
-        net={activeGroup ? groupNet(activeGroup.id) : 0}
-        currency={currency}
-        onClose={() => setActiveGroup(null)}
-        onRemoveMember={handleRemoveMember}
-        onDelete={handleDelete}
-        isOwner={activeGroup?.created_by === user?.id}
-      />
+      <GroupDetailsModal
+  group={activeGroup}
+  members={activeGroup ? (memberMap[activeGroup.id] || []) : []}
+  expenses={activeGroup ? (expenseMap[activeGroup.id] || []) : []}
+  settlements={activeGroup ? (settlementMap[activeGroup.id] || []) : []}
+  net={activeGroup ? groupNet(activeGroup.id) : 0}
+  currency={currency}
+  onClose={() => setActiveGroup(null)}
+  onRemoveMember={handleRemoveMember}
+  onDelete={handleDelete}
+  isOwner={activeGroup?.created_by === user?.id}
+  onRefresh={load}
+/>
     </DashboardLayout>
   );
 }
