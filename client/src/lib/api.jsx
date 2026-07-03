@@ -53,8 +53,11 @@ export function computeBalances({ expenses = [], settlements = [], userId }) {
     const amount = Number(e.amount || 0);
     const participants = e.split_between?.length ? e.split_between : [];
     if (!participants.length) continue;
-    const share = amount / participants.length;
-    for (const p of participants) net.set(p, (net.get(p) || 0) - share);
+    const fallbackShare = amount / participants.length;
+    for (const p of participants) {
+      const share = Number(e.split_amounts?.[p] ?? fallbackShare);
+      net.set(p, (net.get(p) || 0) - share);
+    }
     net.set(e.paid_by, (net.get(e.paid_by) || 0) + amount);
   }
 
@@ -79,8 +82,11 @@ export function computeGroupBalances({ expenses = [], settlements = [], members 
     const amount = Number(e.amount || 0);
     const participants = e.split_between?.length ? e.split_between : [];
     if (!participants.length) continue;
-    const share = amount / participants.length;
-    for (const p of participants) net.set(p, (net.get(p) || 0) - share);
+    const fallbackShare = amount / participants.length;
+    for (const p of participants) {
+      const share = Number(e.split_amounts?.[p] ?? fallbackShare);
+      net.set(p, (net.get(p) || 0) - share);
+    }
     net.set(e.paid_by, (net.get(e.paid_by) || 0) + amount);
   }
 

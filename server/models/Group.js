@@ -12,6 +12,15 @@ const groupSchema = new mongoose.Schema(
       enum: ['Trip', 'Home', 'Office', 'Other'],
       default: 'Other',
     },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    cover_color: {
+      type: String,
+      default: 'indigo',
+    },
     icon: {
       type: String,
       default: '👥',

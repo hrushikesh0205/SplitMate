@@ -114,7 +114,7 @@ export function GroupDetailsModal({
 
   /* member helper */
   const payerName = (expense) => {
-    const paidById = typeof expense.paidBy === 'object' ? expense.paidBy?._id : expense.paidBy;
+    const paidById = typeof expense.paidBy === 'object' ? expense.paidBy?._id : expense.paidBy || expense.paid_by;
     const m = members.find((m) => m.user_id === paidById);
     return m?.profile?.full_name || expense.paidBy?.name || null;
   };

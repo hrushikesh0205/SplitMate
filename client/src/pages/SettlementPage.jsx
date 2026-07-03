@@ -40,6 +40,7 @@ function SettleModal({ open, onClose, groups, members, edges, user, onSettled })
     if (!groupId) return toast.error('Pick a group');
     if (!fromId || !toId) return toast.error('Select payer and payee');
     if (fromId === toId) return toast.error('Payer and payee must differ');
+    if (fromId !== user?.id) return toast.error('You can only record payments you made');
     if (!amt || amt <= 0) return toast.error('Enter a valid amount');
     setLoading(true);
     try {
@@ -60,7 +61,7 @@ function SettleModal({ open, onClose, groups, members, edges, user, onSettled })
       footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button onClick={submit} loading={loading} leftIcon={<Check size={15} />}>Record payment</Button></>}>
       <form onSubmit={submit} className="space-y-4">
         <Field label="Group">
-          <Select value={groupId} onChange={(e) => { setGroupId(e.target.value); setFromId(''); setToId(''); }}>
+          <Select value={groupId} onChange={(e) => { setGroupId(e.target.value); setFromId(user?.id || ''); setToId(''); }}>
             <option value="">Select a group…</option>
             {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </Select>

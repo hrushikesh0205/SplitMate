@@ -1,5 +1,16 @@
 export const calculateSplits = (amount, members, splitType, customSplits) => {
   const splits = [];
+  const customByUser = Array.isArray(customSplits)
+    ? customSplits.reduce((acc, item, index) => {
+        if (item && typeof item === 'object') {
+          const id = item.user || item.userId || item.user_id;
+          if (id) acc[id.toString()] = item.amount ?? item.value ?? item.percent;
+        } else {
+          acc[members[index]] = item;
+        }
+        return acc;
+      }, {})
+    : customSplits || {};
 
   if (splitType === 'equal') {
     const shareAmount = parseFloat((amount / members.length).toFixed(2));
@@ -17,18 +28,18 @@ export const calculateSplits = (amount, members, splitType, customSplits) => {
   }
 
   if (splitType === 'exact') {
-    members.forEach((userId, index) => {
+    members.forEach((userId) => {
       splits.push({
         user: userId,
-        amount: parseFloat(customSplits[index] || 0),
+        amount: parseFloat(customByUser[userId] || 0),
         isPaid: false,
       });
     });
   }
 
   if (splitType === 'percentage') {
-    members.forEach((userId, index) => {
-      const percent = parseFloat(customSplits[index] || 0);
+    members.forEach((userId) => {
+      const percent = parseFloat(customByUser[userId] || 0);
       splits.push({
         user: userId,
         amount: parseFloat(((amount * percent) / 100).toFixed(2)),

@@ -213,20 +213,8 @@ const load = useCallback(async () => {
     const eMap = {};
     const sMap = {};
 
-    // Members are embedded in the group document (members[].user is populated).
-    // Normalise each into { user_id, role, profile } for downstream components.
     for (const grp of g) {
-      mMap[grp._id] = (grp.members || []).map((m) => {
-        const u = m.user || {};
-        return {
-          user_id: u._id || u.id || m._id,
-          role: m.role || 'member',
-          profile: {
-            full_name: u.name || '',
-            avatar_url: u.avatar || '',
-          },
-        };
-      });
+      mMap[grp._id] = grp.members || [];
     }
 
     await Promise.all(
@@ -280,7 +268,7 @@ const load = useCallback(async () => {
       await deleteGroup(group._id);
       toast.success('Group deleted');
       setActiveGroup(null);
-      load();
+      await load();
     } catch (err) {
       toast.error(err.message || 'Could not delete group');
     }
@@ -290,7 +278,10 @@ const load = useCallback(async () => {
     try {
       await removeMember(group._id, member.user_id);
       toast.success('Member removed');
-      load();
+      const updatedGroups = await fetchGroups();
+      const updated = updatedGroups.find((g) => g._id === group._id);
+      if (updated) setActiveGroup(updated);
+      await load();
     } catch (err) {
       toast.error(err.message || 'Could not remove member');
     }
@@ -362,7 +353,12 @@ const load = useCallback(async () => {
         onRemoveMember={handleRemoveMember}
         onDelete={(g) => { setActiveGroup(null); handleDelete(g); }}
         isOwner={activeGroup?.createdBy?._id === user?._id || (typeof activeGroup?.createdBy === 'string' && activeGroup?.createdBy === user?._id)}
-        onMemberAdded={load}
+        onMemberAdded={async () => {
+          const updatedGroups = await fetchGroups();
+          const updated = updatedGroups.find((g) => g._id === activeGroup?._id);
+          if (updated) setActiveGroup(updated);
+          await load();
+        }}
         onGroupUpdated={(updated) => { setActiveGroup(updated); load(); }}
         onGroupDeleted={() => { setActiveGroup(null); load(); }}
         onAddExpense={() => setShowExpense(true)}

@@ -16,6 +16,20 @@ export const getExpenses = asyncHandler(async (req, res) => {
     throw new Error('Group ID is required');
   }
 
+  const group = await Group.findById(groupId);
+  if (!group) {
+    res.status(404);
+    throw new Error('Group not found');
+  }
+
+  const isMember = group.members.some(
+    (m) => m.user.toString() === req.user._id.toString()
+  );
+  if (!isMember) {
+    res.status(403);
+    throw new Error('Not authorized to view expenses for this group');
+  }
+
   const expenses = await Expense.find({ group: groupId })
     .populate('paidBy', 'name email avatar')
     .populate('splits.user', 'name email avatar')
@@ -28,8 +42,12 @@ export const getExpenses = asyncHandler(async (req, res) => {
 // @route   GET /api/expenses/all
 // @access  Private
 export const getAllExpenses = asyncHandler(async (req, res) => {
+  const groups = await Group.find({ 'members.user': req.user._id }).select('_id');
+  const groupIds = groups.map((g) => g._id);
+
   const expenses = await Expense.find({
-    'splits.user': req.user._id,
+    group: { $in: groupIds },
+    $or: [{ 'splits.user': req.user._id }, { paidBy: req.user._id }],
   })
     .populate('paidBy', 'name email avatar')
     .populate('group', 'name icon')
@@ -53,6 +71,15 @@ export const getExpenseById = asyncHandler(async (req, res) => {
     throw new Error('Expense not found');
   }
 
+  const group = await Group.findById(expense.group._id || expense.group);
+  const isMember = group?.members.some(
+    (m) => m.user.toString() === req.user._id.toString()
+  );
+  if (!isMember) {
+    res.status(403);
+    throw new Error('Not authorized to view this expense');
+  }
+
   res.json(expense);
 });
 
@@ -60,8 +87,17 @@ export const getExpenseById = asyncHandler(async (req, res) => {
 // @route   POST /api/expenses
 // @access  Private
 export const addExpense = asyncHandler(async (req, res) => {
-  const { title, amount, category, paidBy, groupId,
-          splitType, customSplits, note, date } = req.body;
+  const title = req.body.title || req.body.description;
+  const amount = req.body.amount;
+  const category = req.body.category;
+  const paidBy = req.body.paidBy || req.body.paid_by;
+  const groupId = req.body.groupId || req.body.group_id;
+  const splitType =
+    req.body.splitType || req.body.split_type || 'equal';
+  const normalizedSplitType = splitType === 'percent' ? 'percentage' : splitType;
+  const splitBetween = req.body.splitBetween || req.body.split_between;
+  const customSplits = req.body.customSplits || req.body.custom_splits || {};
+  const { note, date } = req.body;
 
   // Get group and verify membership
   const group = await Group.findById(groupId);
@@ -78,16 +114,57 @@ export const addExpense = asyncHandler(async (req, res) => {
     throw new Error('Not a member of this group');
   }
 
-  // Get all member IDs
   const memberIds = group.members.map((m) => m.user.toString());
+  if (!memberIds.includes(paidBy?.toString())) {
+    res.status(400);
+    throw new Error('Paid by user must be a group member');
+  }
+
+  const participants = Array.isArray(splitBetween) && splitBetween.length
+    ? splitBetween.map((id) => id.toString())
+    : memberIds;
+
+  const invalidParticipant = participants.find((id) => !memberIds.includes(id));
+  if (invalidParticipant) {
+    res.status(400);
+    throw new Error('Split participant must be a group member');
+  }
+
+  if (!participants.length) {
+    res.status(400);
+    throw new Error('At least one split participant is required');
+  }
+
+  const numericAmount = parseFloat(amount);
+  if (!title?.trim() || !numericAmount || numericAmount <= 0) {
+    res.status(400);
+    throw new Error('Valid title and amount are required');
+  }
 
   // Calculate splits
   const splits = calculateSplits(
-    parseFloat(amount),
-    memberIds,
-    splitType || 'equal',
-    customSplits || []
+    numericAmount,
+    participants,
+    normalizedSplitType,
+    customSplits
   );
+
+  const splitTotal = splits.reduce((sum, split) => sum + Number(split.amount || 0), 0);
+  if (
+    normalizedSplitType === 'exact' &&
+    Math.abs(splitTotal - numericAmount) > 0.01
+  ) {
+    res.status(400);
+    throw new Error('Exact splits must add up to the expense amount');
+  }
+
+  if (
+    normalizedSplitType === 'percentage' &&
+    Math.abs(splitTotal - numericAmount) > 0.01
+  ) {
+    res.status(400);
+    throw new Error('Percentage splits must add up to 100%');
+  }
 
   // Mark paidBy user's split as paid
   const splitsWithPaid = splits.map((split) => ({
@@ -97,13 +174,13 @@ export const addExpense = asyncHandler(async (req, res) => {
 
   // Create expense
   const expense = await Expense.create({
-    title,
-    amount: parseFloat(amount),
-    category: category || 'Other',
+    title: title.trim(),
+    amount: numericAmount,
+    category: category || 'general',
     paidBy,
     group: groupId,
     splits: splitsWithPaid,
-    splitType: splitType || 'equal',
+    splitType: normalizedSplitType,
     note: note || '',
     date: date || Date.now(),
   });

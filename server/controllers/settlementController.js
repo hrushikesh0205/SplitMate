@@ -12,6 +12,21 @@ import { simplifyDebts } from '../utils/debtSimplifier.js';
 export const getGroupBalances = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
 
+  const group = await Group.findById(groupId)
+    .populate('members.user', 'name email avatar');
+  if (!group) {
+    res.status(404);
+    throw new Error('Group not found');
+  }
+
+  const isMember = group.members.some(
+    (m) => m.user._id.toString() === req.user._id.toString()
+  );
+  if (!isMember) {
+    res.status(403);
+    throw new Error('Not authorized to view balances for this group');
+  }
+
   const expenses = await Expense.find({ group: groupId })
     .populate('paidBy', 'name email avatar')
     .populate('splits.user', 'name email avatar');
@@ -58,10 +73,6 @@ export const getGroupBalances = asyncHandler(async (req, res) => {
     }))
   );
 
-  // Get group members for user info
-  const group = await Group.findById(groupId)
-    .populate('members.user', 'name email avatar');
-
   const memberMap = {};
   group.members.forEach((m) => {
     memberMap[m.user._id.toString()] = m.user;
@@ -85,12 +96,45 @@ export const getGroupBalances = asyncHandler(async (req, res) => {
 // @route   POST /api/settlements
 // @access  Private
 export const settleUp = asyncHandler(async (req, res) => {
-  const { toUserId, amount, groupId, note } = req.body;
+  const toUserId = req.body.toUserId || req.body.payee;
+  const groupId = req.body.groupId || req.body.group_id;
+  const { amount, note } = req.body;
+
+  const group = await Group.findById(groupId);
+  if (!group) {
+    res.status(404);
+    throw new Error('Group not found');
+  }
+
+  const memberIds = group.members.map((m) => m.user.toString());
+  if (!toUserId) {
+    res.status(400);
+    throw new Error('Payee is required');
+  }
+
+  if (
+    !memberIds.includes(req.user._id.toString()) ||
+    !memberIds.includes(toUserId?.toString())
+  ) {
+    res.status(403);
+    throw new Error('Both settlement users must be group members');
+  }
+
+  if (req.user._id.toString() === toUserId.toString()) {
+    res.status(400);
+    throw new Error('Payer and payee must differ');
+  }
+
+  const numericAmount = parseFloat(amount);
+  if (!numericAmount || numericAmount <= 0) {
+    res.status(400);
+    throw new Error('Valid settlement amount is required');
+  }
 
   const settlement = await Settlement.create({
     from: req.user._id,
     to: toUserId,
-    amount: parseFloat(amount),
+    amount: numericAmount,
     group: groupId,
     note: note || '',
   });
@@ -111,10 +155,40 @@ export const settleUp = asyncHandler(async (req, res) => {
   res.status(201).json(settlement);
 });
 
+// @desc    Get settlement history for all groups current user belongs to
+// @route   GET /api/settlements
+// @access  Private
+export const getAllSettlementHistory = asyncHandler(async (req, res) => {
+  const groups = await Group.find({ 'members.user': req.user._id }).select('_id');
+  const groupIds = groups.map((g) => g._id);
+
+  const settlements = await Settlement.find({ group: { $in: groupIds } })
+    .populate('from', 'name email avatar')
+    .populate('to', 'name email avatar')
+    .populate('group', 'name icon')
+    .sort({ settledAt: -1 });
+
+  res.json(settlements);
+});
+
 // @desc    Get settlement history for a group
 // @route   GET /api/settlements/history/:groupId
 // @access  Private
 export const getSettlementHistory = asyncHandler(async (req, res) => {
+  const group = await Group.findById(req.params.groupId);
+  if (!group) {
+    res.status(404);
+    throw new Error('Group not found');
+  }
+
+  const isMember = group.members.some(
+    (m) => m.user.toString() === req.user._id.toString()
+  );
+  if (!isMember) {
+    res.status(403);
+    throw new Error('Not authorized to view settlements for this group');
+  }
+
   const settlements = await Settlement.find({ group: req.params.groupId })
     .populate('from', 'name email avatar')
     .populate('to', 'name email avatar')

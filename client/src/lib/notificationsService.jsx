@@ -3,13 +3,28 @@
  */
 import api from './axios.jsx';
 
+function normalizeNotification(notification) {
+  if (!notification) return notification;
+  const id = notification._id || notification.id;
+  return {
+    ...notification,
+    id,
+    _id: id,
+    read: notification.read ?? notification.isRead ?? false,
+    title: notification.title || notification.message || 'Notification',
+    body: notification.body || notification.message || '',
+    created_at: notification.createdAt || notification.created_at,
+  };
+}
+
 export async function fetchNotifications() {
   const { data } = await api.get('/notifications');
-  return data || [];
+  const list = Array.isArray(data) ? data : data?.notifications || [];
+  return list.map(normalizeNotification);
 }
 
 export async function markNotificationRead(id, read = true) {
-  const { data } = await api.put(`/notifications/${id}`, { read });
+  const { data } = await api.put(`/notifications/${id}/read`, { read });
   return data;
 }
 

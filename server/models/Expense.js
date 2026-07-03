@@ -14,8 +14,21 @@ const expenseSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Food', 'Travel', 'Rent', 'Shopping', 'Entertainment', 'Other'],
-      default: 'Other',
+      enum: [
+        'food',
+        'transport',
+        'rent',
+        'utilities',
+        'entertainment',
+        'shopping',
+        'travel',
+        'health',
+        'education',
+        'gift',
+        'general',
+        'other',
+      ],
+      default: 'general',
     },
     paidBy: {
       type: mongoose.Schema.Types.ObjectId,

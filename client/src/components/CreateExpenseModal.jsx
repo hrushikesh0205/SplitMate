@@ -24,6 +24,7 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
   const [paidBy, setPaidBy] = useState('');
   const [splitType, setSplitType] = useState('equal');
   const [selected, setSelected] = useState([]);
+  const [customSplits, setCustomSplits] = useState({});
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
@@ -43,8 +44,9 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
 
   useEffect(() => {
     if (members.length) {
-      setPaidBy(user.id);
-      setSelected(members.map((m) => m.user_id));
+      const ids = members.map((m) => m.user_id).filter(Boolean);
+      setPaidBy(ids.includes(user.id) ? user.id : ids[0] || '');
+      setSelected(ids);
     }
   }, [members, user]);
 
@@ -57,9 +59,13 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
   const toggleMember = (id) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
+  const updateCustomSplit = (id, value) => {
+    setCustomSplits((current) => ({ ...current, [id]: value }));
+  };
+
   const reset = () => {
     setDescription(''); setAmount(''); setCategory('general'); setSplitType('equal');
-    setSelected([]); setDate(new Date().toISOString().slice(0, 10));
+    setSelected([]); setCustomSplits({}); setDate(new Date().toISOString().slice(0, 10));
   };
 
   const submit = async (e) => {
@@ -69,6 +75,22 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return toast.error('Enter a valid amount');
     if (!selected.length) return toast.error('Select at least one person to split with');
+    if (!paidBy) return toast.error('Select who paid');
+
+    const selectedCustomSplits = Object.fromEntries(
+      selected.map((id) => [id, Number(customSplits[id] || 0)])
+    );
+
+    if (splitType === 'exact') {
+      const total = Object.values(selectedCustomSplits).reduce((s, v) => s + v, 0);
+      if (Math.abs(total - amt) > 0.01) return toast.error('Exact splits must add up to the total');
+    }
+
+    if (splitType === 'percent') {
+      const total = Object.values(selectedCustomSplits).reduce((s, v) => s + v, 0);
+      if (Math.abs(total - 100) > 0.01) return toast.error('Percentages must add up to 100');
+    }
+
     setLoading(true);
     try {
       await createExpense({
@@ -79,6 +101,7 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
         category,
         split_type: splitType,
         split_between: selected,
+        custom_splits: splitType === 'equal' ? undefined : selectedCustomSplits,
         date,
       });
       toast.success('Expense added and split calculated');
@@ -189,8 +212,27 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
                   <Avatar name={m.profile?.full_name || 'User'} src={m.profile?.avatar_url} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold text-[var(--fg)]">{m.profile?.full_name || 'Someone'}{m.user_id === user.id ? ' (you)' : ''}</p>
-                    <p className="text-[11px] text-muted">{on ? formatMoney(share, profile?.currency) : 'not included'}</p>
+                    <p className="text-[11px] text-muted">
+                      {on
+                        ? splitType === 'equal'
+                          ? formatMoney(share, profile?.currency)
+                          : splitType === 'exact'
+                            ? formatMoney(Number(customSplits[m.user_id] || 0), profile?.currency)
+                            : `${Number(customSplits[m.user_id] || 0)}%`
+                        : 'not included'}
+                    </p>
                   </div>
+                  {on && splitType !== 'equal' && (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={customSplits[m.user_id] || ''}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => updateCustomSplit(m.user_id, e.target.value)}
+                      className="h-8 w-20"
+                    />
+                  )}
                   <span className={classNames('flex h-5 w-5 items-center justify-center rounded-md border', on ? 'bg-primary-500 border-primary-500 text-white' : 'border-token text-transparent')}>
                     <Check size={13} />
                   </span>

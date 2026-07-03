@@ -4,6 +4,6 @@
 import api from './axios.jsx';
 
 export async function fetchStats() {
-  const { data } = await api.get('/stats');
+  const { data } = await api.get('/stats/dashboard');
   return data;
 }
