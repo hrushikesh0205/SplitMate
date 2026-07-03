@@ -24,11 +24,11 @@ export function AddMemberModal({ open, onClose, group, onAdded }) {
   const submit = async (e) => {
     e.preventDefault();
     const trimmed = value.trim();
-    if (!trimmed) { setError('Enter a user ID or email'); return; }
+    if (!trimmed) { setError('Enter email'); return; }
     setError('');
     setLoading(true);
     try {
-      await addMember(group.id, trimmed);
+      await addMember(group._id, trimmed);
       toast.success('Member added to group');
       reset();
       onAdded?.();
@@ -59,10 +59,10 @@ export function AddMemberModal({ open, onClose, group, onAdded }) {
       }
     >
       <form onSubmit={submit} className="space-y-4">
-        <Field label="User ID or email" error={error} hint="Ask your friend to share their user ID from their profile.">
+        <Field label="User ID or email" error={error} hint="Enter the registered email address.">
           <Input
             icon={Mail}
-            placeholder="e.g. user@email.com or user-id"
+            placeholder="Enter member email"
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(''); }}
             autoFocus

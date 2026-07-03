@@ -33,8 +33,10 @@ export async function fetchMembers(groupId) {
   return data || [];
 }
 
-export async function addMember(groupId, userId) {
-  const { data } = await api.post(`/groups/${groupId}/members`, { userId });
+export async function addMember(groupId, email) {
+  const { data } = await api.post(`/groups/${groupId}/members`, {
+    email,
+  });
   return data;
 }
 

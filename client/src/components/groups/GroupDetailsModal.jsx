@@ -53,9 +53,9 @@ function ExpenseRow({ expense, payer, currency }) {
         <cat.icon size={16} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-[var(--fg)]">{expense.description}</p>
+        <p className="truncate text-sm font-semibold text-[var(--fg)]">{expense.title || expense.description}</p>
         <p className="mt-0.5 truncate text-[11px] text-muted">
-          {payer ? `${payer} paid` : 'Shared'} · {formatDate(expense.date || expense.created_at, 'short')}
+          {payer ? `${payer} paid` : 'Shared'} · {formatDate(expense.date || expense.createdAt, 'short')}
         </p>
       </div>
       <p className="shrink-0 text-sm font-bold text-[var(--fg)]">{formatMoney(expense.amount, currency)}</p>
@@ -103,8 +103,9 @@ export function GroupDetailsModal({
   if (!group) return null;
 
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-  const ownerProfile = members.find((m) => m.user_id === group.created_by)?.profile;
-  const ownerName = ownerProfile?.full_name || 'Unknown';
+  const createdById = typeof group.createdBy === 'object' ? group.createdBy?._id : group.createdBy;
+  const ownerProfile = members.find((m) => m.user_id === createdById)?.profile;
+  const ownerName = ownerProfile?.full_name || group.createdBy?.name || 'Unknown';
   const recentExpenses = expenses.slice(0, 5);
 
   /* balance colour + icon */
@@ -113,8 +114,9 @@ export function GroupDetailsModal({
 
   /* member helper */
   const payerName = (expense) => {
-    const m = members.find((m) => m.user_id === expense.paid_by);
-    return m?.profile?.full_name || null;
+    const paidById = typeof expense.paidBy === 'object' ? expense.paidBy?._id : expense.paidBy;
+    const m = members.find((m) => m.user_id === paidById);
+    return m?.profile?.full_name || expense.paidBy?.name || null;
   };
 
   return (
@@ -163,7 +165,7 @@ export function GroupDetailsModal({
                 icon={CalendarDays}
                 label="Created by"
                 value={ownerName.split(' ')[0]}
-                sub={formatDate(group.created_at, 'short')}
+                sub={formatDate(group.createdAt, 'short')}
               />
             </div>
           </div>
@@ -193,9 +195,9 @@ export function GroupDetailsModal({
                 <MemberCard
                   key={m.user_id}
                   member={m}
-                  isOwner={m.user_id === group.created_by}
+                  isOwner={m.user_id === createdById}
                   isSelf={m.user_id === currentUserId}
-                  canRemove={isOwner && m.user_id !== group.created_by}
+                  canRemove={isOwner && m.user_id !== createdById}
                   onRemove={() => onRemoveMember?.(group, m)}
                 />
               ))}

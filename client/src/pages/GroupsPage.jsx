@@ -13,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import { CreateExpenseModal } from '../components/CreateExpenseModal.jsx';
 import {
-  fetchGroups, fetchMembers, fetchExpenses, fetchSettlements,
+  fetchGroups, fetchExpenses, fetchSettlements,
   createGroup, deleteGroup, removeMember, computeBalances,
 } from '../lib/api.jsx';
 import { formatMoney, formatDate, classNames } from '../lib/utils.jsx';
@@ -200,27 +200,56 @@ export function GroupsPage() {
   const [activeGroup, setActiveGroup] = useState(null);
 
   const currency = profile?.currency || 'USD';
+const load = useCallback(async () => {
+  if (!user) return;
 
-  const load = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const g = await fetchGroups();
-      setGroups(g);
-      const [mMap, eMap, sMap] = [{}, {}, {}];
-      await Promise.all(g.map(async (grp) => {
-        const [mem, exp, set] = await Promise.all([
-          fetchMembers(grp.id), fetchExpenses(grp.id), fetchSettlements(grp.id),
-        ]);
-        mMap[grp.id] = mem; eMap[grp.id] = exp; sMap[grp.id] = set;
-      }));
-      setMemberMap(mMap); setExpenseMap(eMap); setSettlementMap(sMap);
-    } catch {
-    } finally {
-      setLoading(false);
+  setLoading(true);
+
+  try {
+    const g = await fetchGroups();
+    setGroups(g);
+
+    const mMap = {};
+    const eMap = {};
+    const sMap = {};
+
+    // Members are embedded in the group document (members[].user is populated).
+    // Normalise each into { user_id, role, profile } for downstream components.
+    for (const grp of g) {
+      mMap[grp._id] = (grp.members || []).map((m) => {
+        const u = m.user || {};
+        return {
+          user_id: u._id || u.id || m._id,
+          role: m.role || 'member',
+          profile: {
+            full_name: u.name || '',
+            avatar_url: u.avatar || '',
+          },
+        };
+      });
     }
-  }, [user]);
 
+    await Promise.all(
+      g.map(async (grp) => {
+        const [exp, set] = await Promise.all([
+          fetchExpenses(grp._id).catch(() => []),
+          fetchSettlements(grp._id).catch(() => []),
+        ]);
+
+        eMap[grp._id] = exp;
+        sMap[grp._id] = set;
+      })
+    );
+
+    setMemberMap(mMap);
+    setExpenseMap(eMap);
+    setSettlementMap(sMap);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}, [user]);
   useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
@@ -228,12 +257,12 @@ export function GroupsPage() {
       g.name.toLowerCase().includes(query.toLowerCase()) ||
       (g.description || '').toLowerCase().includes(query.toLowerCase())
     );
-    if (sort === 'recent') list = list.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (sort === 'recent') list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     if (sort === 'name') list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
     if (sort === 'balance') {
       list = list.slice().sort((a, b) => {
-        const an = computeBalances({ expenses: expenseMap[a.id] || [], settlements: settlementMap[a.id] || [], members: memberMap[a.id] || [], userId: user.id });
-        const bn = computeBalances({ expenses: expenseMap[b.id] || [], settlements: settlementMap[b.id] || [], members: memberMap[b.id] || [], userId: user.id });
+        const an = computeBalances({ expenses: expenseMap[a._id] || [], settlements: settlementMap[a._id] || [], members: memberMap[a._id] || [], userId: user._id });
+        const bn = computeBalances({ expenses: expenseMap[b._id] || [], settlements: settlementMap[b._id] || [], members: memberMap[b._id] || [], userId: user._id });
         return Math.abs(bn) - Math.abs(an);
       });
     }
@@ -242,13 +271,13 @@ export function GroupsPage() {
 
   const groupNet = (id) => computeBalances({
     expenses: expenseMap[id] || [], settlements: settlementMap[id] || [],
-    members: memberMap[id] || [], userId: user?.id,
+    members: memberMap[id] || [], userId: user?._id,
   });
 
   const handleDelete = async (group) => {
     if (!confirm(`Delete "${group.name}"? This cannot be undone.`)) return;
     try {
-      await deleteGroup(group.id);
+      await deleteGroup(group._id);
       toast.success('Group deleted');
       setActiveGroup(null);
       load();
@@ -259,7 +288,7 @@ export function GroupsPage() {
 
   const handleRemoveMember = async (group, member) => {
     try {
-      await removeMember(group.id, member.user_id);
+      await removeMember(group._id, member.user_id);
       toast.success('Member removed');
       load();
     } catch (err) {
@@ -298,14 +327,14 @@ export function GroupsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((g) => (
               <GroupCard
-                key={g.id}
+                key={g._id}
                 group={g}
-                members={memberMap[g.id] || []}
-                net={groupNet(g.id)}
+                members={memberMap[g._id] || []}
+                net={groupNet(g._id)}
                 currency={currency}
                 onOpen={setActiveGroup}
                 onDelete={handleDelete}
-                canDelete={g.created_by === user?.id}
+                canDelete={g.createdBy?._id === user?._id || (typeof g.createdBy === 'string' && g.createdBy === user?._id)}
               />
             ))}
           </div>
@@ -322,18 +351,22 @@ export function GroupsPage() {
       <CreateGroupModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={load} />
       <CreateExpenseModal open={showExpense} onClose={() => setShowExpense(false)} onCreated={load} />
       <GroupDetailsModal
-  group={activeGroup}
-  members={activeGroup ? (memberMap[activeGroup.id] || []) : []}
-  expenses={activeGroup ? (expenseMap[activeGroup.id] || []) : []}
-  settlements={activeGroup ? (settlementMap[activeGroup.id] || []) : []}
-  net={activeGroup ? groupNet(activeGroup.id) : 0}
-  currency={currency}
-  onClose={() => setActiveGroup(null)}
-  onRemoveMember={handleRemoveMember}
-  onDelete={handleDelete}
-  isOwner={activeGroup?.created_by === user?.id}
-  onRefresh={load}
-/>
+        group={activeGroup}
+        members={activeGroup ? (memberMap[activeGroup._id] || []) : []}
+        expenses={activeGroup ? (expenseMap[activeGroup._id] || []) : []}
+        settlements={activeGroup ? (settlementMap[activeGroup._id] || []) : []}
+        net={activeGroup ? groupNet(activeGroup._id) : 0}
+        currency={currency}
+        currentUserId={user?._id}
+        onClose={() => setActiveGroup(null)}
+        onRemoveMember={handleRemoveMember}
+        onDelete={(g) => { setActiveGroup(null); handleDelete(g); }}
+        isOwner={activeGroup?.createdBy?._id === user?._id || (typeof activeGroup?.createdBy === 'string' && activeGroup?.createdBy === user?._id)}
+        onMemberAdded={load}
+        onGroupUpdated={(updated) => { setActiveGroup(updated); load(); }}
+        onGroupDeleted={() => { setActiveGroup(null); load(); }}
+        onAddExpense={() => setShowExpense(true)}
+      />
     </DashboardLayout>
   );
 }

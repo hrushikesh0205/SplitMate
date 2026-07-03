@@ -16,7 +16,7 @@ export function DeleteGroupModal({ open, onClose, group, onDeleted }) {
   const confirm = async () => {
     setLoading(true);
     try {
-      await deleteGroup(group.id);
+      await deleteGroup(group._id);
       toast.success(`"${group.name}" has been deleted`);
       onDeleted?.();
       onClose();
