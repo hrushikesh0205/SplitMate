@@ -3,7 +3,7 @@ import { Link, useRouter } from '../context/RouterContext.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  Sparkles, ArrowRight, Users, Receipt, HandCoins, ShieldCheck,
+  ArrowRight, Users, Receipt, HandCoins, ShieldCheck,
   BarChart3, Bell, Zap, Check, Star, ChevronDown, Menu, X, Moon, Sun,
   PieChart, Wallet, Globe, Smartphone,
 } from 'lucide-react';
@@ -14,7 +14,7 @@ const FEATURES = [
   { icon: HandCoins, title: 'Easy settle up', desc: 'See exactly who owes whom. Settle with a tap and watch balances update in real time.' },
   { icon: BarChart3, title: 'Insightful analytics', desc: 'Monthly trends, category breakdowns, and spend patterns at a glance.' },
   { icon: Bell, title: 'Real-time alerts', desc: 'Get notified the moment an expense is added or a settlement is recorded.' },
-  { icon: ShieldCheck, title: 'Bank-grade security', desc: 'Row-level security on every record. Your financial data stays private to your group.' },
+  { icon: ShieldCheck, title: 'Multiple Currency Support', desc: 'Choose your preferred currency and track expenses across different countries with consistent formatting.' },
 ];
 
 const STEPS = [
@@ -40,7 +40,7 @@ const FAQS = [
 
 const STATS = [
   { value: '12M+', label: 'Expenses tracked' },
-  { value: '180+', label: 'Countries' },
+  { value: '160+', label: 'Countries' },
   { value: '4.9★', label: 'Average rating' },
   { value: '0', label: 'Awkward conversations' },
 ];
@@ -51,15 +51,15 @@ function MiniDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted">Total balance</p>
-          <p className="text-2xl font-bold text-[var(--fg)]">$1,284.50</p>
+          <p className="text-2xl font-bold text-[var(--fg)]">₹10,284</p>
         </div>
-        <span className="chip border-accent-200 bg-accent-50 text-accent-700">+ $320 this month</span>
+        <span className="chip border-accent-200 bg-accent-50 text-accent-700">+ ₹320 this month</span>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2">
         {[
-          { label: 'You owe', value: '$48.20', tone: 'text-danger-500' },
-          { label: 'You are owed', value: '$368.40', tone: 'text-accent-600' },
-          { label: 'Net', value: '+$320.20', tone: 'text-primary-600' },
+          { label: 'You owe', value: '₹48.20', tone: 'text-danger-500' },
+          { label: 'You are owed', value: '₹300', tone: 'text-accent-600' },
+          { label: 'Net', value: '+₹320.20', tone: 'text-primary-600' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-token bg-elev p-2.5">
             <p className="text-[10px] text-muted">{s.label}</p>
@@ -69,9 +69,9 @@ function MiniDashboard() {
       </div>
       <div className="mt-4 space-y-2">
         {[
-          { name: 'Sushi night', who: 'Maya paid', amt: '$84.00', cat: 'food' },
-          { name: 'Uber to airport', who: 'Diego paid', amt: '$42.50', cat: 'transport' },
-          { name: 'Airbnb Kyoto', who: 'Aisha paid', amt: '$640.00', cat: 'rent' },
+          { name: 'Sushi night', who: 'Maya paid', amt: '₹84.00', cat: 'food' },
+          { name: 'Uber to airport', who: 'Diego paid', amt: '₹42.00', cat: 'transport' },
+          { name: 'Airbnb Kyoto', who: 'Aisha paid', amt: '₹640.00', cat: 'rent' },
         ].map((e) => (
           <div key={e.name} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500/10 text-primary-500">
@@ -127,13 +127,11 @@ export function LandingPage() {
       <header className={`fixed inset-x-0 top-0 z-40 transition-all ${scrolled ? 'glass border-b border-token' : ''}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 via-violet-500 to-accent-500 text-white shadow-glow">
-              <Sparkles size={18} />
-            </span>
+            <img src="/logo.png" alt="SplitMate logo" className="h-9 w-9 rounded-xl object-cover shadow-glow" />
             <span className="text-base font-bold tracking-tight text-[var(--fg)]">SplitMate</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            {['Features', 'How it works', 'Testimonials', 'FAQ'].map((l) => (
+            {['Features', 'How it works', 'Reviews', 'FAQ'].map((l) => (
               <a key={l} href={`#${l.toLowerCase().replace(/\s/g, '-')}`} className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-[var(--fg)] hover:bg-elev transition">
                 {l}
               </a>
@@ -170,32 +168,23 @@ export function LandingPage() {
         )}
       </header>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 sm:pt-40">
+      <section className="relative pt-28 pb-16 sm:pt-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="animate-fade-up">
-              <span className="chip border-primary-200 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:border-primary-500/30 dark:text-primary-300">
-                <Zap size={12} /> Now with smart settle-up
-              </span>
+              
               <h1 className="mt-5 text-4xl font-bold tracking-tight text-[var(--fg)] sm:text-5xl lg:text-6xl">
-                Share expenses.<br />
-                <span className="gradient-text">Settle debts.</span><br />
-                Stay friends.
+                Split expenses.<br />
+                <span className="gradient-text">Not Friendships.</span><br />
               </h1>
               <p className="mt-5 max-w-md text-base text-muted sm:text-lg">
-                SplitMate is the premium way to split bills, track shared expenses, and settle up with friends. Built for groups, trips, and households.
+                The smartest way to track shared expenses with friends,family and colleagues.No more awkward money conversations.
               </p>
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <Button size="lg" onClick={() => navigate(user ? '/dashboard' : '/register')} rightIcon={<ArrowRight size={16} />}>
-                  {user ? 'Open dashboard' : 'Start for free'}
+                  {user ? 'Start Splitting Free' : 'Start for free'}
                 </Button>
-                <Button size="lg" variant="ghost" onClick={() => navigate('/login')}>Live demo</Button>
-              </div>
-              <div className="mt-8 flex items-center gap-5 text-xs text-muted">
-                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> No credit card</span>
-                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> Free forever</span>
-                <span className="flex items-center gap-1.5"><Check size={14} className="text-accent-500" /> Private by default</span>
+                <Button size="lg" variant="ghost" onClick={() => navigate('/login')}>Login to Account</Button>
               </div>
             </div>
             <div className="relative animate-fade-up delay-200">
@@ -224,7 +213,7 @@ export function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20">
+      <section id="features" className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Everything you need to split fairly</h2>
@@ -245,11 +234,11 @@ export function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-20 bg-elev/40">
+      <section id="how-it-works" className="py-16 bg-elev/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Up and running in minutes</h2>
-            <p className="mt-4 text-muted">Three steps from signup to settle-up.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Split smarter in 3 simple steps</h2>
+            <p className="mt-4 text-muted">Create a group, invite your friends, add expenses, and settle up effortlessly.</p>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
@@ -267,7 +256,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20">
+      <section id="testimonials" className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Loved by people who hate math</h2>
@@ -296,7 +285,7 @@ export function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20 bg-elev/40">
+      <section id="faq" className="py-16 bg-elev/40">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">Frequently asked questions</h2>
@@ -309,19 +298,20 @@ export function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-violet-600 to-accent-600 p-10 text-center shadow-lift sm:p-16">
             <div className="absolute inset-0 bg-grid-dark opacity-30" />
             <div className="relative">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Ready to stop keeping score?</h2>
-              <p className="mt-4 text-white/80">Create your first group in under a minute. Your friends will thank you.</p>
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Ready to split smarter?</h2>
+              <p className="mt-4 text-white/80">Create a free account and start splitting expenses with your friends and groups today
+              </p>
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={() => navigate(user ? '/dashboard' : '/register')}
                   className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary-700 shadow-lift transition hover:-translate-y-0.5"
                 >
-                  {user ? 'Open dashboard' : 'Get started — it’s free'} <ArrowRight size={16} />
+                  {user ? 'Create Free Account' : 'Get started — it’s free'} <ArrowRight size={16} />
                 </button>
               </div>
             </div>
@@ -330,32 +320,28 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-token py-12">
+      <footer className="border-t border-token py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Link to="/" className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-white">
-                  <Sparkles size={16} />
-                </span>
+                <img src="/logo.png" alt="SplitMate logo" className="h-8 w-8 rounded-lg object-cover" />
                 <span className="font-bold text-[var(--fg)]">SplitMate</span>
               </Link>
               <p className="mt-3 text-sm text-muted">The premium way to share expenses and settle debts with friends.</p>
             </div>
-            {[
-              { title: 'Product', links: ['Features', 'How it works', 'Pricing', 'Security'] },
-              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
-              { title: 'Legal', links: ['Privacy', 'Terms', 'Cookies', 'Licenses'] },
-            ].map((col) => (
-              <div key={col.title}>
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted">{col.title}</p>
-                <ul className="mt-3 space-y-2">
-                  {col.links.map((l) => (
-                    <li key={l}><a href="#" className="text-sm text-muted hover:text-[var(--fg)] transition">{l}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+           <div className="flex flex-wrap items-center gap-x-10 gap-y-5">
+  {['Features', 'How it works', 'Security'].map((link) => (
+    <a
+      key={link}
+      href="#"
+      className="text-sm text-muted hover:text-[var(--fg)] transition-colors"
+    >
+      {link}
+    </a>
+  ))}
+</div>
+
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-token pt-6 sm:flex-row">
             <p className="text-xs text-muted">© 2026 SplitMate. Built for fair splits.</p>

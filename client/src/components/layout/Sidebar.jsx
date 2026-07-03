@@ -35,9 +35,7 @@ export function Sidebar({ open, onClose }) {
       >
         <div className="flex items-center justify-between px-5 py-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 via-violet-500 to-accent-500 text-white shadow-glow">
-              <Sparkles size={18} />
-            </span>
+            <img src="/logo.png" alt="SplitMate logo" className="h-9 w-9 rounded-xl object-cover shadow-glow" />
             <span className="text-base font-bold tracking-tight text-[var(--fg)]">SplitMate</span>
           </Link>
           <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-even lg:hidden">

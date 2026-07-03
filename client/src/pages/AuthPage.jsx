@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Field, Input } from '../components/ui/Input.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
-import { Mail, Lock, Sparkles, ArrowRight, Check, Star } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Check, Star } from 'lucide-react';
 
 const HIGHLIGHTS = [
   'Split bills across any group size',
@@ -21,9 +21,7 @@ function AuthAside({ title, subtitle }) {
       <div className="absolute bottom-0 -left-24 h-72 w-72 rounded-full bg-accent-300/20 blur-3xl" />
 
       <Link to="/" className="relative flex items-center gap-2.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
-          <Sparkles size={18} />
-        </span>
+        <img src="/logo.png" alt="SplitMate logo" className="h-9 w-9 rounded-xl object-cover" />
         <span className="text-lg font-bold">SplitMate</span>
       </Link>
 
@@ -118,9 +116,7 @@ export function AuthPage({ mode = 'login' }) {
       <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-sm animate-fade-up">
           <Link to="/" className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 text-white">
-              <Sparkles size={18} />
-            </span>
+            <img src="/logo.png" alt="SplitMate logo" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-lg font-bold text-[var(--fg)]">SplitMate</span>
           </Link>
 
