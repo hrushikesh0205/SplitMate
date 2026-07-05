@@ -18,9 +18,10 @@ import {
 } from '../lib/api.jsx';
 import { formatMoney, formatDate, classNames } from '../lib/utils.jsx';
 import {
-  Users, Plus, Search, Trash2, UserMinus, Crown, Receipt,
-  ArrowRight, LayoutGrid, List, X, Sparkles,
+  Users, Plus, Search, Trash2, Receipt,
+  ArrowRight,
 } from 'lucide-react';
+
 import { GroupDetailsModal } from '../components/groups/GroupDetailsModal.jsx';
 
 
@@ -127,62 +128,8 @@ function CreateGroupModal({ open, onClose, onCreated }) {
   );
 }
 
-// function GroupDetailModal({ group, members, net, currency, onClose, onRemoveMember, onDelete, isOwner }) {
-//   if (!group) return null;
-//   return (
-//     <Modal open={!!group} onClose={onClose} title={group.name} subtitle={group.description || 'Group details'} size="lg">
-//       <div className="space-y-5">
-//         <div className="grid grid-cols-3 gap-3">
-//           <div className="rounded-xl border border-token bg-elev p-3">
-//             <p className="text-[11px] text-muted">Your balance</p>
-//             <p className={classNames('text-base font-bold', net > 0 ? 'text-accent-600' : net < 0 ? 'text-danger-500' : 'text-muted')}>
-//               {formatMoney(net, currency)}
-//             </p>
-//           </div>
-//           <div className="rounded-xl border border-token bg-elev p-3">
-//             <p className="text-[11px] text-muted">Members</p>
-//             <p className="text-base font-bold text-[var(--fg)]">{members.length}</p>
-//           </div>
-//           <div className="rounded-xl border border-token bg-elev p-3">
-//             <p className="text-[11px] text-muted">Created</p>
-//             <p className="text-base font-bold text-[var(--fg)]">{formatDate(group.created_at, 'short')}</p>
-//           </div>
-//         </div>
 
-//         <div>
-//           <h4 className="mb-2 text-xs font-semibold text-muted">Members</h4>
-//           <ul className="space-y-2">
-//             {members.map((m) => (
-//               <li key={m.user_id} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-3">
-//                 <Avatar name={m.profile?.full_name || 'User'} src={m.profile?.avatar_url} size="sm" />
-//                 <div className="min-w-0 flex-1">
-//                   <p className="truncate text-sm font-semibold text-[var(--fg)]">
-//                     {m.profile?.full_name || 'Someone'}
-//                     {m.user_id === group.created_by && <span className="ml-2 text-warn-500"><Crown size={12} className="inline" /></span>}
-//                   </p>
-//                   <p className="text-[11px] text-muted">{m.role}</p>
-//                 </div>
-//                 {isOwner && m.user_id !== group.created_by && (
-//                   <IconButton onClick={() => onRemoveMember(group, m)} aria-label="Remove member"><UserMinus size={15} /></IconButton>
-//                 )}
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
 
-//         {isOwner && (
-//           <div className="rounded-xl border border-danger-200 bg-danger-50/50 p-4 dark:border-danger-500/20 dark:bg-danger-500/5">
-//             <p className="text-xs font-semibold text-danger-600">Danger zone</p>
-//             <p className="mt-1 text-[11px] text-muted">Deleting a group removes all its expenses and settlements.</p>
-//             <Button variant="ghost" size="sm" className="mt-3 !text-danger-600 !border-danger-200" onClick={() => onDelete(group)} leftIcon={<Trash2 size={14} />}>
-//               Delete group
-//             </Button>
-//           </div>
-//         )}
-//       </div>
-//     </Modal>
-//   );
-// }
 
 export function GroupsPage() {
   const { user, profile } = useAuth();
@@ -199,7 +146,7 @@ export function GroupsPage() {
   const [showExpense, setShowExpense] = useState(false);
   const [activeGroup, setActiveGroup] = useState(null);
 
-  const currency = profile?.currency || 'USD';
+  const currency = profile?.currency || 'INR';
 const load = useCallback(async () => {
   if (!user) return;
 
@@ -213,19 +160,20 @@ const load = useCallback(async () => {
     const eMap = {};
     const sMap = {};
 
+    // Use normalized id consistently
     for (const grp of g) {
-      mMap[grp._id] = grp.members || [];
+      mMap[grp.id] = grp.members || [];
     }
 
     await Promise.all(
       g.map(async (grp) => {
         const [exp, set] = await Promise.all([
-          fetchExpenses(grp._id).catch(() => []),
-          fetchSettlements(grp._id).catch(() => []),
+          fetchExpenses(grp.id).catch(() => []),
+          fetchSettlements(grp.id).catch(() => []),
         ]);
 
-        eMap[grp._id] = exp;
-        sMap[grp._id] = set;
+        eMap[grp.id] = exp;
+        sMap[grp.id] = set;
       })
     );
 
@@ -245,12 +193,12 @@ const load = useCallback(async () => {
       g.name.toLowerCase().includes(query.toLowerCase()) ||
       (g.description || '').toLowerCase().includes(query.toLowerCase())
     );
-    if (sort === 'recent') list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (sort === 'recent') list = list.slice().sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
     if (sort === 'name') list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
     if (sort === 'balance') {
       list = list.slice().sort((a, b) => {
-        const an = computeBalances({ expenses: expenseMap[a._id] || [], settlements: settlementMap[a._id] || [], members: memberMap[a._id] || [], userId: user._id });
-        const bn = computeBalances({ expenses: expenseMap[b._id] || [], settlements: settlementMap[b._id] || [], members: memberMap[b._id] || [], userId: user._id });
+        const an = computeBalances({ expenses: expenseMap[a.id] || [], settlements: settlementMap[a.id] || [], members: memberMap[a.id] || [], userId: user.id });
+        const bn = computeBalances({ expenses: expenseMap[b.id] || [], settlements: settlementMap[b.id] || [], members: memberMap[b.id] || [], userId: user.id });
         return Math.abs(bn) - Math.abs(an);
       });
     }
@@ -259,13 +207,13 @@ const load = useCallback(async () => {
 
   const groupNet = (id) => computeBalances({
     expenses: expenseMap[id] || [], settlements: settlementMap[id] || [],
-    members: memberMap[id] || [], userId: user?._id,
+    members: memberMap[id] || [], userId: user?.id,
   });
 
   const handleDelete = async (group) => {
     if (!confirm(`Delete "${group.name}"? This cannot be undone.`)) return;
     try {
-      await deleteGroup(group._id);
+      await deleteGroup(group.id);
       toast.success('Group deleted');
       setActiveGroup(null);
       await load();
@@ -276,11 +224,9 @@ const load = useCallback(async () => {
 
   const handleRemoveMember = async (group, member) => {
     try {
-      await removeMember(group._id, member.user_id);
+      await removeMember(group.id, member.user_id);
       toast.success('Member removed');
-      const updatedGroups = await fetchGroups();
-      const updated = updatedGroups.find((g) => g._id === group._id);
-      if (updated) setActiveGroup(updated);
+      setActiveGroup(null);
       await load();
     } catch (err) {
       toast.error(err.message || 'Could not remove member');
@@ -318,14 +264,14 @@ const load = useCallback(async () => {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((g) => (
               <GroupCard
-                key={g._id}
+                key={g.id}
                 group={g}
-                members={memberMap[g._id] || []}
-                net={groupNet(g._id)}
+                members={memberMap[g.id] || []}
+                net={groupNet(g.id)}
                 currency={currency}
                 onOpen={setActiveGroup}
                 onDelete={handleDelete}
-                canDelete={g.createdBy?._id === user?._id || (typeof g.createdBy === 'string' && g.createdBy === user?._id)}
+                canDelete={g.created_by === user?.id}
               />
             ))}
           </div>
@@ -343,20 +289,17 @@ const load = useCallback(async () => {
       <CreateExpenseModal open={showExpense} onClose={() => setShowExpense(false)} onCreated={load} />
       <GroupDetailsModal
         group={activeGroup}
-        members={activeGroup ? (memberMap[activeGroup._id] || []) : []}
-        expenses={activeGroup ? (expenseMap[activeGroup._id] || []) : []}
-        settlements={activeGroup ? (settlementMap[activeGroup._id] || []) : []}
-        net={activeGroup ? groupNet(activeGroup._id) : 0}
+        members={activeGroup ? (memberMap[activeGroup.id] || []) : []}
+        expenses={activeGroup ? (expenseMap[activeGroup.id] || []) : []}
+        settlements={activeGroup ? (settlementMap[activeGroup.id] || []) : []}
+        net={activeGroup ? groupNet(activeGroup.id) : 0}
         currency={currency}
-        currentUserId={user?._id}
+        currentUserId={user?.id}
         onClose={() => setActiveGroup(null)}
         onRemoveMember={handleRemoveMember}
         onDelete={(g) => { setActiveGroup(null); handleDelete(g); }}
-        isOwner={activeGroup?.createdBy?._id === user?._id || (typeof activeGroup?.createdBy === 'string' && activeGroup?.createdBy === user?._id)}
+        isOwner={activeGroup?.created_by === user?.id}
         onMemberAdded={async () => {
-          const updatedGroups = await fetchGroups();
-          const updated = updatedGroups.find((g) => g._id === activeGroup?._id);
-          if (updated) setActiveGroup(updated);
           await load();
         }}
         onGroupUpdated={(updated) => { setActiveGroup(updated); load(); }}

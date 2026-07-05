@@ -40,7 +40,7 @@ export function EditGroupModal({ open, onClose, group, onUpdated }) {
     if (!name.trim()) { toast.error('Group name cannot be empty'); return; }
     setLoading(true);
     try {
-      const updated = await updateGroup(group._id, {
+      const updated = await updateGroup(group.id || group._id, {
         name: name.trim(),
         description: description.trim(),
         cover_color: color,

@@ -4,15 +4,13 @@ import { MemberCard } from './MemberCard.jsx';
 import { AddMemberModal } from './AddMemberModal.jsx';
 import { EditGroupModal } from './EditGroupModal.jsx';
 import { DeleteGroupModal } from './DeleteGroupModal.jsx';
-import { Avatar } from '../ui/Avatar.jsx';
 import { Button } from '../ui/Button.jsx';
-import { Badge } from '../ui/Badge.jsx';
 import { EmptyState } from '../ui/EmptyState.jsx';
 import { categoryMeta } from '../../lib/categories.jsx';
-import { formatMoney, formatDate, relativeTime, classNames } from '../../lib/utils.jsx';
+import { formatMoney, formatDate, classNames } from '../../lib/utils.jsx';
 import {
-  Users, Receipt, Wallet, CalendarDays, Plus, Pencil, Trash2,
-  UserPlus, TrendingUp, TrendingDown, Minus, Crown,
+  Users, Receipt, CalendarDays, Plus, Pencil, Trash2,
+  UserPlus, TrendingUp, TrendingDown, Minus,
 } from 'lucide-react';
 
 const COVER_COLORS = [
@@ -67,26 +65,27 @@ function ExpenseRow({ expense, payer, currency }) {
  * Full-featured group details modal.
  *
  * Props
- *   group         – group object
- *   members       – array of { user_id, role, profile: { full_name, avatar_url } }
- *   expenses      – array of expense objects for this group
- *   net           – number (current user's net balance in this group)
- *   currency      – e.g. 'USD'
- *   currentUserId – auth user id
- *   isOwner       – boolean
- *   onClose       – () => void
+ *   group          – normalized group object (has group.created_by as plain string ID)
+ *   members        – array of { user_id, role, profile: { full_name, avatar_url } }
+ *   expenses       – array of normalized expense objects for this group
+ *   settlements    – array of normalized settlement objects for this group
+ *   net            – number (current user's net balance in this group)
+ *   currency       – e.g. 'INR'
+ *   currentUserId  – auth user id (normalized, plain string)
+ *   isOwner        – boolean
+ *   onClose        – () => void
  *   onRemoveMember – (group, member) => void
- *   onCreatedExpense – () => void   (called after add-expense succeeds)
- *   onGroupUpdated   – (updated) => void
- *   onGroupDeleted   – () => void
- *   onMemberAdded    – () => void
+ *   onAddExpense   – () => void
+ *   onGroupUpdated – (updated) => void
+ *   onGroupDeleted – () => void
+ *   onMemberAdded  – () => void
  */
 export function GroupDetailsModal({
   group,
   members = [],
   expenses = [],
   net = 0,
-  currency = 'USD',
+  currency = 'INR',
   currentUserId,
   isOwner,
   onClose,
@@ -103,20 +102,20 @@ export function GroupDetailsModal({
   if (!group) return null;
 
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-  const createdById = typeof group.createdBy === 'object' ? group.createdBy?._id : group.createdBy;
+  // created_by is set by normalizeGroup — always a plain string ID
+  const createdById = group.created_by;
   const ownerProfile = members.find((m) => m.user_id === createdById)?.profile;
-  const ownerName = ownerProfile?.full_name || group.createdBy?.name || 'Unknown';
+  const ownerName = ownerProfile?.full_name || 'Unknown';
   const recentExpenses = expenses.slice(0, 5);
 
   /* balance colour + icon */
   const balanceCls = net > 0 ? 'text-emerald-300' : net < 0 ? 'text-rose-300' : 'text-white/70';
   const BalIcon = net > 0 ? TrendingUp : net < 0 ? TrendingDown : Minus;
 
-  /* member helper */
+  /* use normalized paid_by (plain string ID) to find the payer's display name */
   const payerName = (expense) => {
-    const paidById = typeof expense.paidBy === 'object' ? expense.paidBy?._id : expense.paidBy || expense.paid_by;
-    const m = members.find((m) => m.user_id === paidById);
-    return m?.profile?.full_name || expense.paidBy?.name || null;
+    const m = members.find((m) => m.user_id === expense.paid_by);
+    return m?.profile?.full_name || null;
   };
 
   return (
@@ -165,7 +164,7 @@ export function GroupDetailsModal({
                 icon={CalendarDays}
                 label="Created by"
                 value={ownerName.split(' ')[0]}
-                sub={formatDate(group.createdAt, 'short')}
+                sub={formatDate(group.created_at || group.createdAt, 'short')}
               />
             </div>
           </div>

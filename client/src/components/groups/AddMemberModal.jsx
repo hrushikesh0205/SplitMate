@@ -28,7 +28,7 @@ export function AddMemberModal({ open, onClose, group, onAdded }) {
     setError('');
     setLoading(true);
     try {
-      await addMember(group._id, trimmed);
+      await addMember(group.id || group._id, trimmed);
       toast.success('Member added to group');
       reset();
       onAdded?.();
