@@ -36,7 +36,6 @@ export {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
-  insertNotification,
 } from './notificationsService.jsx';
 
 // ---------- Pure balance-calculation helpers (no network, no changes) ----------

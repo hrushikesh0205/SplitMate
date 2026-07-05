@@ -36,7 +36,3 @@ export async function deleteNotification(id) {
   await api.delete(`/notifications/${id}`);
 }
 
-export async function insertNotification(payload) {
-  const { data } = await api.post('/notifications', payload);
-  return data;
-}
