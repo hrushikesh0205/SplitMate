@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import http from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import { setIO } from './socket/io.js';
 import { initSocket } from './socket/socketHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -35,6 +36,9 @@ export const io = new Server(httpServer, {
     credentials: true,
   }
 });
+
+// Register the io instance in the singleton so controllers can access it without circular deps
+setIO(io);
 
 app.use(cors({
   origin: (origin, callback) => {
