@@ -1,4 +1,4 @@
-import { io } from '../server.js';
+import { getIO } from '../socket/io.js';
 import { createNotification } from '../utils/createNotification.js';
 import asyncHandler from 'express-async-handler';
 import Expense from '../models/Expense.js';
@@ -163,13 +163,13 @@ export const addExpense = asyncHandler(async (req, res) => {
     Math.abs(splitTotal - numericAmount) > 0.01
   ) {
     res.status(400);
-    throw new Error('Percentage splits must add up to 100%');
+    throw new Error('Percentages must add up to 100%');
   }
 
   // Mark paidBy user's split as paid
   const splitsWithPaid = splits.map((split) => ({
     ...split,
-    isPaid: split.user.toString() === paidBy,
+    isPaid: split.user.toString() === paidBy.toString(),
   }));
 
   // Create expense
@@ -203,9 +203,9 @@ export const addExpense = asyncHandler(async (req, res) => {
       recipients: recipientIds,
       sender: req.user._id,
       type: 'expense_added',
-      message: `${req.user.name} added ₹${amount} for "${title}" in ${group.name}`,
+      message: `${req.user.name} added ₹${numericAmount} for "${title}" in ${group.name}`,
       group: groupId,
-      io,
+      io: getIO(),
     });
   }
 
@@ -223,8 +223,14 @@ export const deleteExpense = asyncHandler(async (req, res) => {
     throw new Error('Expense not found');
   }
 
-  // Only person who added it can delete
-  if (expense.paidBy.toString() !== req.user._id.toString()) {
+  // Allow paidBy user OR group creator to delete
+  const group = await Group.findById(expense.group);
+  const isGroupCreator = group && group.createdBy.toString() === req.user._id.toString();
+
+  if (
+    expense.paidBy.toString() !== req.user._id.toString() &&
+    !isGroupCreator
+  ) {
     res.status(403);
     throw new Error('Not authorized to delete this expense');
   }

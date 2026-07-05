@@ -1,4 +1,4 @@
-import { io } from '../server.js';
+import { getIO } from '../socket/io.js';
 import { createNotification } from '../utils/createNotification.js';
 import asyncHandler from 'express-async-handler';
 import Settlement from '../models/Settlement.js';
@@ -147,9 +147,9 @@ export const settleUp = asyncHandler(async (req, res) => {
     recipients: [toUserId],
     sender: req.user._id,
     type: 'settled_up',
-    message: `${req.user.name} settled ₹${amount} with you`,
+    message: `${req.user.name} settled ₹${numericAmount} with you`,
     group: groupId,
-    io,
+    io: getIO(),
   });
 
   res.status(201).json(settlement);

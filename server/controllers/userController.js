@@ -30,7 +30,8 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 
   user.name = req.body.name || user.name;
-  user.email = req.body.email || user.email;
+  if (req.body.email) user.email = req.body.email;
+  if (req.body.avatar !== undefined) user.avatar = req.body.avatar;
 
   const updatedUser = await user.save();
 

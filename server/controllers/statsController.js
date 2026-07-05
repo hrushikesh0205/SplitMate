@@ -67,7 +67,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     .limit(5);
 
   const activity = recentExpenses.map((e) => ({
-    action: `${e.paidBy?.name === req.user.name ? 'You' : e.paidBy?.name} added ₹${e.amount} in ${e.group?.icon} ${e.group?.name}`,
+    action: `${e.paidBy?._id?.toString() === userId.toString() ? 'You' : e.paidBy?.name} added ₹${e.amount} in ${e.group?.icon || ''} ${e.group?.name}`,
     createdAt: e.createdAt,
   }));
 

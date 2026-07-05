@@ -215,8 +215,11 @@ export const deleteGroup = asyncHandler(async (req, res) => {
     throw new Error('Only group creator can delete the group');
   }
 
+  // Cascade delete all related data before removing the group
+  await Promise.all([
+    Expense.deleteMany({ group: group._id }),
+    Settlement.deleteMany({ group: group._id }),
+  ]);
   await group.deleteOne();
-  await Expense.deleteMany({ group: group._id });
-  await Settlement.deleteMany({ group: group._id });
   res.json({ message: 'Group deleted successfully' });
 });
