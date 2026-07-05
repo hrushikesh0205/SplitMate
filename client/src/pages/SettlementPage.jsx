@@ -13,7 +13,7 @@ import { SkeletonCard } from '../components/ui/Skeleton.jsx';
 import { EmptyState } from '../components/ui/EmptyState.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import {
-  fetchGroups, fetchAllExpenses, fetchAllSettlements, fetchMembers,
+  fetchGroups, fetchAllExpenses, fetchAllSettlements,
   computeBalances, computeGroupBalances, createSettlement,
 } from '../lib/api.jsx';
 import { formatMoney, formatDate, relativeTime, classNames } from '../lib/utils.jsx';
@@ -130,7 +130,7 @@ export function SettlementPage() {
   const [memberMap, setMemberMap] = useState({});
   const [showSettle, setShowSettle] = useState(false);
 
-  const currency = profile?.currency || 'USD';
+  const currency = profile?.currency || 'INR';
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -138,8 +138,9 @@ export function SettlementPage() {
     try {
       const [g, e, s] = await Promise.all([fetchGroups(), fetchAllExpenses(), fetchAllSettlements()]);
       setGroups(g); setExpenses(e); setSettlements(s);
+      // Build memberMap from groups response (already populated — no extra requests)
       const mMap = {};
-      await Promise.all(g.map(async (grp) => { try { mMap[grp.id] = await fetchMembers(grp.id); } catch {} }));
+      g.forEach((grp) => { mMap[grp.id] = grp.members || []; });
       setMemberMap(mMap);
     } catch {
     } finally {

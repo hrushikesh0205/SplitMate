@@ -60,9 +60,7 @@ export function Sidebar({ open, onClose }) {
               >
                 <item.icon size={18} className={classNames(active ? 'text-primary-500' : 'text-muted group-hover:text-[var(--fg)]')} />
                 {item.label}
-                {item.label === 'Notifications' && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent-500" />
-                )}
+
               </Link>
             );
           })}
