@@ -3,7 +3,7 @@ import { classNames, formatMoney } from '../lib/utils.jsx';
 
 /** Lightweight dependency-free charts rendered as SVG. */
 
-export function DonutChart({ data = [], size = 160, thickness = 18, currency = 'USD' }) {
+export function DonutChart({ data = [], size = 160, thickness = 18, currency = 'INR' }) {
   // data: [{ label, value, color }]
   const total = data.reduce((s, d) => s + Math.max(0, d.value), 0) || 1;
   const radius = (size - thickness) / 2;
@@ -55,7 +55,7 @@ export function DonutChart({ data = [], size = 160, thickness = 18, currency = '
   );
 }
 
-export function BarChart({ data = [], height = 160, currency = 'USD' }) {
+export function BarChart({ data = [], height = 160, currency = 'INR' }) {
   // data: [{ label, value }]
   const max = Math.max(1, ...data.map((d) => d.value));
   return (

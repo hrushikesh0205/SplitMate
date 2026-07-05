@@ -156,7 +156,7 @@ export function CreateExpenseModal({ open, onClose, defaultGroupId, onCreated })
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Amount">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted">{profile?.currency || 'USD'}</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted">{profile?.currency || 'INR'}</span>
               <Input type="number" min="0" step="0.01" placeholder="0.00" className="pl-14" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
           </Field>

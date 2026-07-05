@@ -12,7 +12,7 @@ import { EmptyState } from '../components/ui/EmptyState.jsx';
 import { CreateExpenseModal } from '../components/CreateExpenseModal.jsx';
 import { DonutChart, BarChart, ProgressRing } from '../components/Charts.jsx';
 import {
-  fetchGroups, fetchAllExpenses, fetchAllSettlements, fetchMembers,
+  fetchGroups, fetchAllExpenses, fetchAllSettlements,
   fetchNotifications, computeBalances,
 } from '../lib/api.jsx';
 import { CATEGORIES, categoryMeta } from '../lib/categories.jsx';
@@ -33,7 +33,7 @@ export function DashboardPage() {
   const [memberCache, setMemberCache] = useState({});
   const [showExpense, setShowExpense] = useState(false);
 
-  const currency = profile?.currency || 'USD';
+  const currency = profile?.currency || 'INR';
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -46,11 +46,9 @@ export function DashboardPage() {
         fetchNotifications(),
       ]);
       setGroups(g); setExpenses(e); setSettlements(s); setNotifications(n);
-      // prefetch members for groups
+      // Build memberCache from groups response (already populated — no extra requests)
       const cache = {};
-      await Promise.all((g || []).slice(0, 8).map(async (grp) => {
-        try { cache[grp.id] = await fetchMembers(grp.id); } catch {}
-      }));
+      g.forEach((grp) => { cache[grp.id] = grp.members || []; });
       setMemberCache(cache);
     } catch {
     } finally {

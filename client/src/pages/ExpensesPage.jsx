@@ -13,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import { CreateExpenseModal } from '../components/CreateExpenseModal.jsx';
 import {
-  fetchGroups, fetchAllExpenses, fetchMembers, deleteExpense,
+  fetchGroups, fetchAllExpenses, deleteExpense,
 } from '../lib/api.jsx';
 import { CATEGORIES, categoryMeta } from '../lib/categories.jsx';
 import { formatMoney, formatDate, relativeTime, classNames } from '../lib/utils.jsx';
@@ -26,7 +26,9 @@ function ExpenseRow({ expense, groupName, payer, currentUser, currency, onOpen, 
   const cat = categoryMeta(expense.category);
   const youPaid = expense.paid_by === currentUser?.id;
   const youInSplit = (expense.split_between || []).includes(currentUser?.id);
-  const share = expense.split_between?.length ? Number(expense.amount) / expense.split_between.length : 0;
+  // Use actual split amount if available, fall back to equal division
+  const share = expense.split_amounts?.[currentUser?.id] ?? 
+    (expense.split_between?.length ? Number(expense.amount) / expense.split_between.length : 0);
   return (
     <div onClick={() => onOpen(expense)} className="flex cursor-pointer items-center gap-3 rounded-xl p-3.5 transition hover:bg-elev">
       <span className={classNames('flex h-11 w-11 items-center justify-center rounded-xl', cat.bg, cat.color)}>
@@ -61,7 +63,9 @@ function ExpenseDetailModal({ expense, groupName, payer, members, currency, onCl
   if (!expense) return null;
   const cat = categoryMeta(expense.category);
   const splitPeople = (expense.split_between || []).map((id) => members.find((m) => m.user_id === id)).filter(Boolean);
-  const share = splitPeople.length ? Number(expense.amount) / splitPeople.length : 0;
+  // Use actual split amounts map, fall back to equal division
+  const equalShare = splitPeople.length ? Number(expense.amount) / splitPeople.length : 0;
+  const getShare = (userId) => expense.split_amounts?.[userId] ?? equalShare;
 
   return (
     <Modal open={!!expense} onClose={onClose} title="Expense details" subtitle={groupName} size="md">
@@ -95,7 +99,7 @@ function ExpenseDetailModal({ expense, groupName, payer, members, currency, onCl
               <li key={m.user_id} className="flex items-center gap-3 rounded-xl border border-token bg-elev p-2.5">
                 <Avatar name={m.profile?.full_name || 'User'} src={m.profile?.avatar_url} size="xs" />
                 <span className="text-sm text-[var(--fg)]">{m.profile?.full_name || 'Someone'}</span>
-                <span className="ml-auto text-sm font-semibold text-[var(--fg)]">{formatMoney(share, currency)}</span>
+                <span className="ml-auto text-sm font-semibold text-[var(--fg)]">{formatMoney(getShare(m.user_id), currency)}</span>
               </li>
             ))}
           </ul>
@@ -144,16 +148,18 @@ export function ExpensesPage() {
   const [groupId, setGroupId] = useState('all');
   const [sort, setSort] = useState('recent');
 
-  const currency = profile?.currency || 'USD';
+  const currency = profile?.currency || 'INR';
 
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
       const [g, e] = await Promise.all([fetchGroups(), fetchAllExpenses()]);
-      setGroups(g); setExpenses(e);
+      setGroups(g);
+      setExpenses(e);
+      // Build memberMap from groups response (already populated — no extra requests)
       const mMap = {};
-      await Promise.all(g.map(async (grp) => { try { mMap[grp.id] = await fetchMembers(grp.id); } catch {} }));
+      g.forEach((grp) => { mMap[grp.id] = grp.members || []; });
       setMemberMap(mMap);
     } catch {
     } finally {
