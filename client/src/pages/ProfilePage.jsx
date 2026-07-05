@@ -16,7 +16,7 @@ import {
   Receipt, Users, HandCoins, Calendar,
 } from 'lucide-react';
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'JPY', 'CNY', 'SGD', 'AED'];
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'CNY', 'SGD', 'AED'];
 
 export function ProfilePage() {
   const { user, profile, updateProfile, signOut } = useAuth();
@@ -25,9 +25,11 @@ export function ProfilePage() {
 
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
-  const [currency, setCurrency] = useState(profile?.currency || 'USD');
+  const [currency, setCurrency] = useState(profile?.currency || 'INR');
   const [saving, setSaving] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
 
   const saveProfile = async (e) => {
     e.preventDefault();
@@ -50,13 +52,18 @@ export function ProfilePage() {
     { label: 'Plan', value: 'Free', icon: Check, accent: 'primary' },
   ];
 
-  const sendPwReset = async () => {
+  const changePassword = async (e) => {
+    e.preventDefault();
+    if (!currentPw || !newPw) return toast.error('Fill in both password fields');
+    if (newPw.length < 6) return toast.error('New password must be at least 6 characters');
     setPwLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email: user?.email });
-      toast.success('Password reset email sent');
+      await api.put('/users/change-password', { currentPassword: currentPw, newPassword: newPw });
+      toast.success('Password changed successfully');
+      setCurrentPw('');
+      setNewPw('');
     } catch (err) {
-      toast.error(err.message || 'Password reset is not available yet');
+      toast.error(err.message || 'Could not change password');
     } finally {
       setPwLoading(false);
     }
@@ -136,18 +143,32 @@ export function ProfilePage() {
         <Card>
           <CardHeader title="Security" subtitle="Keep your account safe" />
           <CardBody className="space-y-3">
-            <div className="rounded-xl border border-token bg-elev p-4">
+            <form onSubmit={changePassword} className="rounded-xl border border-token bg-elev p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500/10 text-primary-500"><KeyRound size={16} /></span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[var(--fg)]">Password</p>
-                  <p className="text-[11px] text-muted">Send a reset link to your email</p>
+                  <p className="text-sm font-semibold text-[var(--fg)]">Change password</p>
+                  <p className="text-[11px] text-muted">Update your account password</p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={sendPwReset} loading={pwLoading}>
-                Reset password
+              <Input
+                type="password"
+                placeholder="Current password"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                icon={Lock}
+              />
+              <Input
+                type="password"
+                placeholder="New password (min 6 chars)"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                icon={Lock}
+              />
+              <Button type="submit" variant="ghost" size="sm" className="w-full" loading={pwLoading}>
+                Change password
               </Button>
-            </div>
+            </form>
             <div className="rounded-xl border border-token bg-elev p-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500/10 text-accent-500"><Shield size={16} /></span>

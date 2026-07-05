@@ -28,7 +28,7 @@ function userToProfile(raw) {
     id: raw._id || raw.id,
     full_name: raw.name || '',
     avatar_url: raw.avatar || '',
-    currency: raw.currency || 'USD',
+    currency: localStorage.getItem('sm_currency') || raw.currency || 'INR',
     created_at: raw.createdAt || raw.created_at || null,
   };
 }
@@ -37,6 +37,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // One-time migration: if currency was previously stored as USD (the old default), reset to INR
+  if (localStorage.getItem('sm_currency') === 'USD') {
+    localStorage.setItem('sm_currency', 'INR');
+  }
 
   // On mount: if there is a stored token, try to restore the session
   useEffect(() => {
@@ -83,10 +88,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   const updateProfile = useCallback(async (patch) => {
+    // Persist currency as a local preference (backend has no currency field)
+    if (patch.currency) {
+      localStorage.setItem('sm_currency', patch.currency);
+    }
     const raw = await apiUpdateProfile(patch);
-    const updated = userToProfile(raw);
-    setProfile((prev) => ({ ...prev, ...updated }));
-    return updated;
+    const updatedUser = normaliseUser(raw);
+    const updatedProfile = {
+      ...userToProfile(raw),
+      currency: patch.currency || localStorage.getItem('sm_currency') || 'INR',
+    };
+    setUser(updatedUser);
+    setProfile((prev) => ({ ...prev, ...updatedProfile }));
+    return updatedProfile;
   }, []);
 
   const refreshProfile = useCallback(async () => {

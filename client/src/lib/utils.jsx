@@ -2,31 +2,31 @@ export function classNames(...args) {
   return args.filter(Boolean).join(' ');
 }
 
-export function formatMoney(amount, currency = 'USD', opts = {}) {
+export function formatMoney(amount, currency = 'INR', opts = {}) {
   const value = Number(amount || 0);
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency,
       maximumFractionDigits: opts.decimals ?? 2,
       minimumFractionDigits: opts.decimals ?? 2,
     }).format(value);
   } catch {
-    return `$${value.toFixed(2)}`;
+    return `₹${value.toFixed(2)}`;
   }
 }
 
-export function formatCompact(amount, currency = 'USD') {
+export function formatCompact(amount, currency = 'INR') {
   const value = Number(amount || 0);
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency,
       notation: 'compact',
       maximumFractionDigits: 1,
     }).format(value);
   } catch {
-    return `$${value.toFixed(0)}`;
+    return `₹${value.toFixed(0)}`;
   }
 }
 
